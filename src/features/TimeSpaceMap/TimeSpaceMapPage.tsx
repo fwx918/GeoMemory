@@ -2,6 +2,7 @@ import { useApp } from '../../context/AppContext'
 import { getRecord } from '../../data'
 import LocationPicker from '../../components/common/LocationPicker'
 import SvgMap from '../../components/map/SvgMap'
+import GeoMap from '../../components/map/GeoMap'
 import TimelineSlider from '../../components/timeline/TimelineSlider'
 import StoryCard from '../../components/common/StoryCard'
 
@@ -13,9 +14,13 @@ export default function TimeSpaceMapPage() {
     <div className="space-y-4 p-4">
       <LocationPicker />
 
-      {/* 地图 */}
+      {/* 地图：含 geo 的地点用真实地理地图，否则用程式化 SVG */}
       <div className="aspect-square w-full overflow-hidden rounded-2xl border border-white/10 bg-ink-soft">
-        {record && <SvgMap layers={record.mapLayers} />}
+        {activeLocation.geo ? (
+          <GeoMap geo={activeLocation.geo} overlay={record?.geoOverlay} />
+        ) : (
+          record?.mapLayers && <SvgMap layers={record.mapLayers} />
+        )}
       </div>
 
       {/* 时间轴 */}

@@ -4,6 +4,8 @@ import { getEra, getRecord } from '../../data'
 import type { LayerToggles } from '../../components/map/SvgMap'
 import LocationPicker from '../../components/common/LocationPicker'
 import OverlaySlider from '../../components/overlay/OverlaySlider'
+import SvgMap from '../../components/map/SvgMap'
+import GeoMap from '../../components/map/GeoMap'
 import StoryCard from '../../components/common/StoryCard'
 
 const TOGGLE_DEFS: { key: keyof LayerToggles; label: string }[] = [
@@ -16,6 +18,7 @@ const TOGGLE_DEFS: { key: keyof LayerToggles; label: string }[] = [
 
 export default function PastPresentPage() {
   const { activeLocation, availableEras } = useApp()
+  const isGeo = Boolean(activeLocation.geo)
   const [show, setShow] = useState<LayerToggles>({
     water: true,
     coastline: true,
@@ -33,6 +36,17 @@ export default function PastPresentPage() {
 
   const toggle = (k: keyof LayerToggles) => setShow((s) => ({ ...s, [k]: !s[k] }))
 
+  // 根据地点类型渲染对应的地图节点
+  const renderMap = (record: typeof present, minimal: boolean) => {
+    if (!record) return null
+    if (isGeo && activeLocation.geo) {
+      return (
+        <GeoMap geo={activeLocation.geo} overlay={record.geoOverlay} showLabels={!minimal} minimal={minimal} />
+      )
+    }
+    return record.mapLayers ? <SvgMap layers={record.mapLayers} show={show} showLabels={false} /> : null
+  }
+
   return (
     <div className="space-y-4 p-4">
       <LocationPicker />
@@ -45,33 +59,34 @@ export default function PastPresentPage() {
 
       {past && present && (
         <OverlaySlider
-          past={past.mapLayers}
-          present={present.mapLayers}
+          past={renderMap(past, false)}
+          present={renderMap(present, isGeo ? false : true)}
           pastLabel={getEra(pastEra).label}
           presentLabel={getEra(presentEra).label}
-          show={show}
         />
       )}
 
-      {/* 图层开关 */}
-      <div className="flex flex-wrap gap-2">
-        {TOGGLE_DEFS.map((t) => {
-          const on = show[t.key]
-          return (
-            <button
-              key={t.key}
-              onClick={() => toggle(t.key)}
-              className={`rounded-full border px-3 py-1 text-xs transition-colors ${
-                on
-                  ? 'border-seal/60 bg-seal/15 text-parchment-50'
-                  : 'border-white/10 bg-ink-soft/60 text-parchment-200/50'
-              }`}
-            >
-              {t.label}
-            </button>
-          )
-        })}
-      </div>
+      {/* 图层开关（仅程式化地图支持分层显隐） */}
+      {!isGeo && (
+        <div className="flex flex-wrap gap-2">
+          {TOGGLE_DEFS.map((t) => {
+            const on = show[t.key]
+            return (
+              <button
+                key={t.key}
+                onClick={() => toggle(t.key)}
+                className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+                  on
+                    ? 'border-seal/60 bg-seal/15 text-parchment-50'
+                    : 'border-white/10 bg-ink-soft/60 text-parchment-200/50'
+                }`}
+              >
+                {t.label}
+              </button>
+            )
+          })}
+        </div>
+      )}
 
       <StoryCard title="时间留下的痕迹" icon="🏛️">
         <p>{activeLocation.story.pastVsPresent}</p>

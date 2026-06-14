@@ -1,27 +1,20 @@
-import { useRef, useState } from 'react'
-import type { MapLayers } from '../../types'
-import type { LayerToggles } from '../map/SvgMap'
-import SvgMap from '../map/SvgMap'
+import { useRef, useState, type ReactNode } from 'react'
 
 interface Props {
-  past: MapLayers
-  present: MapLayers
+  /** 「过去」一侧的地图（显示在左侧） */
+  past: ReactNode
+  /** 「现在」一侧的地图（底层全幅） */
+  present: ReactNode
   pastLabel: string
   presentLabel: string
-  show?: LayerToggles
 }
 
 /**
- * 古今对照滑块：两张 SvgMap 上下叠放，用一条可拖动的分隔线 + clip-path
+ * 古今对照滑块：两张地图上下叠放，用一条可拖动的分隔线 + clip-path
  * 揭示「过去」一侧。左侧显示古地图，右侧显示今地图。
+ * 地图节点由调用方渲染，因此可同时支持程式化 SvgMap 与真实地理 GeoMap。
  */
-export default function OverlaySlider({
-  past,
-  present,
-  pastLabel,
-  presentLabel,
-  show,
-}: Props) {
+export default function OverlaySlider({ past, present, pastLabel, presentLabel }: Props) {
   const [pos, setPos] = useState(50) // 分隔线位置百分比
   const containerRef = useRef<HTMLDivElement>(null)
   const dragging = useRef(false)
@@ -44,16 +37,11 @@ export default function OverlaySlider({
       onTouchMove={(e) => updateFromClientX(e.touches[0].clientX)}
     >
       {/* 今（底层，整张显示） */}
-      <div className="absolute inset-0">
-        <SvgMap layers={present} show={show} showLabels={false} />
-      </div>
+      <div className="absolute inset-0">{present}</div>
 
       {/* 古（上层，按分隔线裁剪到左侧） */}
-      <div
-        className="absolute inset-0"
-        style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}
-      >
-        <SvgMap layers={past} show={show} showLabels={false} />
+      <div className="absolute inset-0" style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}>
+        {past}
       </div>
 
       {/* 标签 */}
@@ -65,10 +53,7 @@ export default function OverlaySlider({
       </span>
 
       {/* 分隔线 + 拖柄 */}
-      <div
-        className="absolute inset-y-0 z-10 w-0.5 bg-seal"
-        style={{ left: `${pos}%` }}
-      >
+      <div className="absolute inset-y-0 z-10 w-0.5 bg-seal" style={{ left: `${pos}%` }}>
         <button
           className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize rounded-full bg-seal px-2 py-3 text-[10px] font-bold text-parchment-50 shadow-lg"
           onMouseDown={(e) => {
