@@ -28,6 +28,7 @@ const LINE_STYLE: Record<GeoFeature['kind'], { className: string; width: number;
   area: { className: 'fill-amber-200/10 stroke-amber-200/25', width: 0.4 },
   wall: { className: 'fill-none stroke-amber-300/70', width: 0.8, dash: '0.8 0.8' },
   mountain: { className: 'fill-emerald-300/15 stroke-emerald-300/40', width: 0.4 },
+  coastline: { className: 'fill-none stroke-sky-200/80', width: 0.8, dash: '1.5 1' },
 }
 
 function FeaturePath({ f, proj }: { f: GeoFeature; proj: ReturnType<typeof createProjector> }) {

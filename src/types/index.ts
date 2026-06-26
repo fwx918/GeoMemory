@@ -90,7 +90,7 @@ export interface NearbySpot {
 /** 经纬度坐标 [lng, lat] */
 export type LngLat = [number, number]
 
-export type GeoFeatureKind = 'river' | 'lake' | 'rail' | 'road' | 'wall' | 'area' | 'mountain'
+export type GeoFeatureKind = 'river' | 'lake' | 'rail' | 'road' | 'wall' | 'area' | 'mountain' | 'coastline'
 
 /** 一条真实地理要素：线状（river/rail/road）或环状（lake/area/wall/mountain） */
 export interface GeoFeature {
