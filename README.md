@@ -30,7 +30,9 @@
 ## 🧱 技术栈
 
 - **构建**：Vite + React 18 + TypeScript
-- **样式**：Tailwind CSS（移动优先，宣纸 + 印章红配色）
+- **样式**：Tailwind CSS（响应式，宣纸 + 印章红配色）
+  - **手机端**：居中窄列 + 底部 Tab 导航
+  - **桌面端（≥1024px）**：左侧边栏导航 + 宽屏多栏布局（地图与文字左右并排、卡片双栏）
 - **路由**：react-router-dom（HashRouter）
 - **状态**：单一 `AppContext`（当前地点 / 当前时代 / 对话历史），无 Redux
 

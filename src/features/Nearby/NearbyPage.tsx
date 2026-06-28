@@ -23,7 +23,7 @@ export default function NearbyPage() {
   }, [requestLocation])
 
   return (
-    <div className="space-y-4 p-4">
+    <div className="mx-auto max-w-4xl space-y-4 p-4 lg:p-8">
       <div className="rounded-2xl border border-white/5 bg-ink-soft/60 p-4">
         <div className="flex items-center gap-2">
           <span className="text-2xl">🚶</span>
@@ -48,7 +48,7 @@ export default function NearbyPage() {
             <span className="text-parchment-50">{nearest.name}</span>
           </div>
 
-          <ul className="space-y-3">
+          <ul className="grid gap-3 lg:grid-cols-2">
             {nearest.nearby.map((spot) => (
               <li key={spot.id}>
                 <button

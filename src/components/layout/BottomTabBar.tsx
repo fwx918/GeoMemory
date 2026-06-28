@@ -10,7 +10,7 @@ const TABS = [
 
 export default function BottomTabBar() {
   return (
-    <nav className="z-20 border-t border-white/5 bg-ink-soft/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
+    <nav className="z-20 border-t border-white/5 bg-ink-soft/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
       <ul className="flex">
         {TABS.map((tab) => (
           <li key={tab.to} className="flex-1">
