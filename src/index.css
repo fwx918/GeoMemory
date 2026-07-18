@@ -28,7 +28,3 @@ body {
   scrollbar-width: none;
 }
 
-/* 地图图层之间的平滑过渡（古今对照变形） */
-.map-morph {
-  transition: d 0.6s ease, opacity 0.6s ease, transform 0.6s ease;
-}

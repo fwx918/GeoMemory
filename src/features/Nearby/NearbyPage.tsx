@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
+import { getClosestEra } from '../../data'
 import { useGeolocation } from '../../hooks/useGeolocation'
 import EraBadge from '../../components/common/EraBadge'
 
@@ -54,7 +55,10 @@ export default function NearbyPage() {
                 <button
                   onClick={() => {
                     setActiveLocationId(nearest.id)
-                    setActiveEra(spot.era)
+                    // 该景点年代若无对应记录，就近取一个该地点真实拥有的年代，
+                    // 避免全局 activeEra 停在地图/时间轴都不存在的年代上
+                    const era = getClosestEra(nearest, spot.era)
+                    if (era) setActiveEra(era)
                     navigate('/map')
                   }}
                   className="flex w-full animate-fade-in items-start gap-3 rounded-2xl border border-white/5 bg-ink-soft/60 p-3 text-left active:scale-[0.99]"

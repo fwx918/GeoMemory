@@ -1,12 +1,5 @@
 import { NavLink } from 'react-router-dom'
-
-const TABS = [
-  { to: '/map', emoji: '🗺️', label: '时空地图', desc: '时间轴上看变迁' },
-  { to: '/place', emoji: '📖', label: '此地从前', desc: '读懂一个地方' },
-  { to: '/overlay', emoji: '🏛️', label: '古今对照', desc: '叠加对比今昔' },
-  { to: '/guide', emoji: '🤖', label: 'AI 时空导游', desc: '与历史对话' },
-  { to: '/nearby', emoji: '🚶', label: '发现身边故事', desc: '附近的历史' },
-]
+import { NAV_ITEMS } from './nav'
 
 /** 桌面端左侧导航（仅在 lg 及以上显示） */
 export default function Sidebar() {
@@ -20,7 +13,7 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex-1 space-y-1 px-3">
-        {TABS.map((tab) => (
+        {NAV_ITEMS.map((tab) => (
           <NavLink
             key={tab.to}
             to={tab.to}

@@ -13,11 +13,12 @@ const SINGAPORE_RIVER: GeoFeature = {
   ],
 }
 
-// 1800 年代历史海岸线（位于今填海岸线以北，直观显示填海造地）
-const HISTORIC_COAST_1800: GeoFeature = {
-  id: 'coast-1800',
+// 填海前的历史海岸线（位于今填海岸线以北）。1970 年代大规模填海之前
+// 各时代都沿这条线；2026 年则已推到今日的主岛边界，二者对照即见填海造地。
+const HISTORIC_COAST: GeoFeature = {
+  id: 'historic-coast',
   kind: 'coastline',
-  name: '1800 海岸线',
+  name: '填海前海岸线',
   coords: [
     [103.81, 1.284],
     [103.835, 1.282],
@@ -64,6 +65,7 @@ export const SINGAPORE: Location = {
       highlights: ['繁忙货运港口', '马来亚铁路终点站', '码头工人社区', '南洋店屋'],
       imageHint: '🚂',
       geoOverlay: {
+        features: [HISTORIC_COAST],
         markers: [
           { id: 'station-1950', name: '丹戎巴葛火车站', lng: 103.837, lat: 1.273, kind: 'transit' },
           { id: 'wharf', name: '货运码头', lng: 103.846, lat: 1.27, kind: 'transit' },
@@ -79,7 +81,7 @@ export const SINGAPORE: Location = {
       highlights: ['东南亚航运枢纽', '丹戎巴葛码头公司', '蒸汽轮船加煤站', '华人苦力聚居'],
       imageHint: '⚓',
       geoOverlay: {
-        features: [HISTORIC_COAST_1800],
+        features: [HISTORIC_COAST],
         markers: [
           { id: 'docks', name: '丹戎巴葛码头', lng: 103.843, lat: 1.272, kind: 'transit' },
           { id: 'kampong', name: '华人甘榜(牛车水)', lng: 103.844, lat: 1.283, kind: 'village' },
@@ -94,7 +96,7 @@ export const SINGAPORE: Location = {
       highlights: ['马来语「插桩海角」', '渔村与红树林', '原始海岸线靠内陆', '尚未开埠'],
       imageHint: '🎣',
       geoOverlay: {
-        features: [HISTORIC_COAST_1800],
+        features: [HISTORIC_COAST],
         markers: [
           { id: 'cape', name: '插桩海角', lng: 103.845, lat: 1.279, kind: 'water' },
           { id: 'fishing', name: '渔村', lng: 103.836, lat: 1.285, kind: 'village' },

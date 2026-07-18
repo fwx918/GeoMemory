@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import type { GeoBase, GeoEraOverlay, GeoFeature, GeoMarker } from '../../types'
 import { createProjector, toPath } from './geo'
 
@@ -18,6 +18,8 @@ interface Props {
   className?: string
   /** 仅显示底图（用于古今对照的“今”底层时隐藏标签等） */
   minimal?: boolean
+  /** 变化时叠加层淡入（用于时代切换的过渡） */
+  morphKey?: string
 }
 
 const LINE_STYLE: Record<GeoFeature['kind'], { className: string; width: number; dash?: string }> = {
@@ -31,12 +33,15 @@ const LINE_STYLE: Record<GeoFeature['kind'], { className: string; width: number;
   coastline: { className: 'fill-none stroke-sky-200/80', width: 0.8, dash: '1.5 1' },
 }
 
-function FeaturePath({ f, proj }: { f: GeoFeature; proj: ReturnType<typeof createProjector> }) {
+type Projector = ReturnType<typeof createProjector>
+
+// memo：proj / f 均为稳定引用（数据模块常量），仅在真正变化时重投影
+const FeaturePath = memo(function FeaturePath({ f, proj }: { f: GeoFeature; proj: Projector }) {
   const closed = f.kind === 'lake' || f.kind === 'area' || f.kind === 'wall' || f.kind === 'mountain'
   const style = LINE_STYLE[f.kind]
   return (
     <path
-      className={`map-morph ${style.className}`}
+      className={style.className}
       strokeWidth={style.width}
       strokeDasharray={style.dash}
       strokeLinejoin="round"
@@ -44,21 +49,21 @@ function FeaturePath({ f, proj }: { f: GeoFeature; proj: ReturnType<typeof creat
       d={toPath(f.coords, proj, closed)}
     />
   )
-}
+})
 
-function Marker({
+const Marker = memo(function Marker({
   m,
   proj,
   showLabel,
 }: {
   m: GeoMarker
-  proj: ReturnType<typeof createProjector>
+  proj: Projector
   showLabel: boolean
 }) {
   const [x, y] = proj.project(m.lng, m.lat)
   const emoji = KIND_EMOJI[m.kind ?? 'landmark']
   return (
-    <g className="map-morph" transform={`translate(${x} ${y})`}>
+    <g transform={`translate(${x} ${y})`}>
       <circle r="2.6" className="fill-seal/30" />
       <circle r="1" className="fill-seal" />
       <text x="0" y="-3.4" textAnchor="middle" style={{ fontSize: '3.4px' }} className="select-none">
@@ -77,14 +82,21 @@ function Marker({
       )}
     </g>
   )
-}
+})
 
 /**
  * 真实地理地图：用地点的真实经纬度边界 + 河流/湖泊/铁路等要素绘制，
  * 形状与真实地理一致（如淮南的淮河走向、瓦埠湖位置）。时代切换时
- * 通过 base 不变、overlay 变化来表现古今差异。
+ * 底图不变、叠加层变化，并以淡入过渡呈现古今差异。
  */
-export default function GeoMap({ geo, overlay, showLabels = true, className = '', minimal = false }: Props) {
+export default function GeoMap({
+  geo,
+  overlay,
+  showLabels = true,
+  className = '',
+  minimal = false,
+  morphKey,
+}: Props) {
   const proj = useMemo(() => createProjector(geo.bbox), [geo.bbox])
   const boundaryPath = useMemo(() => toPath(geo.boundary, proj, true), [geo.boundary, proj])
 
@@ -111,16 +123,16 @@ export default function GeoMap({ geo, overlay, showLabels = true, className = ''
         <FeaturePath key={f.id} f={f} proj={proj} />
       ))}
 
-      {/* 该时代叠加要素 */}
-      {overlay?.features?.map((f) => (
-        <FeaturePath key={f.id} f={f} proj={proj} />
-      ))}
-
-      {/* 地标 */}
-      {!minimal &&
-        overlay?.markers?.map((m) => (
-          <Marker key={m.id} m={m} proj={proj} showLabel={showLabels} />
+      {/* 该时代叠加层：key 随时代变化 → 重挂载并淡入，实现平滑过渡 */}
+      <g key={morphKey} className="animate-fade-in">
+        {overlay?.features?.map((f) => (
+          <FeaturePath key={f.id} f={f} proj={proj} />
         ))}
+        {!minimal &&
+          overlay?.markers?.map((m) => (
+            <Marker key={m.id} m={m} proj={proj} showLabel={showLabels} />
+          ))}
+      </g>
     </svg>
   )
 }

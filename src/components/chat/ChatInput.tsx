@@ -19,7 +19,10 @@ export default function ChatInput({ onSend, disabled }: Props) {
       <input
         value={text}
         onChange={(e) => setText(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && submit()}
+        onKeyDown={(e) => {
+          // 忽略输入法组合中的回车（如拼音选词确认），避免提前发送
+          if (e.key === 'Enter' && !e.nativeEvent.isComposing) submit()
+        }}
         placeholder="向时空导游提问…"
         className="flex-1 rounded-full border border-white/10 bg-ink-soft/80 px-4 py-2 text-sm text-parchment-50 placeholder:text-parchment-200/40 focus:border-seal/60 focus:outline-none"
       />

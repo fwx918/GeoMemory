@@ -49,11 +49,15 @@ export function getAvailableEras(loc: Location): EraKey[] {
   return order.filter((k) => loc.eras.includes(k) && loc.records[k])
 }
 
-/** 取某地点某时代的记录；若该时代缺失，回退到最接近的可用时代 */
-export function getRecord(loc: Location, era: EraKey): EraRecord | undefined {
-  if (loc.records[era]) return loc.records[era]
+/**
+ * 在某地点可用的时代中，找到与目标时代最接近的一个（按年份距离）。
+ * 目标时代本身可用时原样返回；无任何记录时返回 undefined。
+ * 这是「就近回退」策略的唯一实现，供 getRecord / AppContext / Nearby 复用。
+ */
+export function getClosestEra(loc: Location, era: EraKey): EraKey | undefined {
   const available = getAvailableEras(loc)
   if (available.length === 0) return undefined
+  if (available.includes(era)) return era
   const target = ERAS.find((e) => e.key === era)?.year ?? 0
   let closest = available[0]
   let bestDiff = Infinity
@@ -65,5 +69,11 @@ export function getRecord(loc: Location, era: EraKey): EraRecord | undefined {
       closest = k
     }
   }
-  return loc.records[closest]
+  return closest
+}
+
+/** 取某地点某时代的记录；若该时代缺失，回退到最接近的可用时代 */
+export function getRecord(loc: Location, era: EraKey): EraRecord | undefined {
+  const key = getClosestEra(loc, era)
+  return key ? loc.records[key] : undefined
 }

@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from 'react'
 import type { ChatMessage, EraKey, Location } from '../types'
-import { getAvailableEras, getLocationById, getRecord, LOCATIONS } from '../data'
+import { getAvailableEras, getClosestEra, getLocationById, LOCATIONS } from '../data'
 
 interface AppState {
   locations: Location[]
@@ -23,7 +23,6 @@ interface AppState {
   /** AI 时空导游对话历史（跨标签页保留） */
   chat: ChatMessage[]
   pushChat: (msg: ChatMessage) => void
-  resetChat: () => void
 }
 
 const AppContext = createContext<AppState | null>(null)
@@ -43,29 +42,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const availableEras = useMemo(() => getAvailableEras(activeLocation), [activeLocation])
 
-  // 切换地点时，确保当前时代在新地点可用，否则回退到最接近的时代
-  const setActiveLocationId = useCallback(
-    (id: string) => {
-      setActiveLocationIdRaw(id)
-      const loc = getLocationById(id)
-      if (loc) {
-        const eras = getAvailableEras(loc)
-        setActiveEra((prev) => {
-          if (eras.includes(prev)) return prev
-          // getRecord 会回退，但时间轴需要一个真实存在的 key
-          const rec = getRecord(loc, prev)
-          return rec?.era ?? eras[0]
-        })
-      }
-    },
-    [],
-  )
+  // 切换地点时，确保当前时代在新地点可用，否则就近回退（复用 getClosestEra）
+  const setActiveLocationId = useCallback((id: string) => {
+    setActiveLocationIdRaw(id)
+    const loc = getLocationById(id)
+    if (loc) setActiveEra((prev) => getClosestEra(loc, prev) ?? prev)
+  }, [])
 
   const pushChat = useCallback((msg: ChatMessage) => {
     setChat((prev) => [...prev, msg])
   }, [])
-
-  const resetChat = useCallback(() => setChat([]), [])
 
   const value = useMemo<AppState>(
     () => ({
@@ -78,7 +64,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       availableEras,
       chat,
       pushChat,
-      resetChat,
     }),
     [
       activeLocation,
@@ -88,7 +73,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       availableEras,
       chat,
       pushChat,
-      resetChat,
     ],
   )
 

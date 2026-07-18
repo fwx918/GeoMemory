@@ -1,19 +1,12 @@
 import { useLocation } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
 import { getEra } from '../../data'
-
-const TITLES: Record<string, string> = {
-  '/map': '时空地图',
-  '/place': '此地从前',
-  '/overlay': '古今对照',
-  '/guide': 'AI 时空导游',
-  '/nearby': '发现身边故事',
-}
+import { ROUTE_TITLES } from './nav'
 
 export default function AppHeader() {
   const { pathname } = useLocation()
   const { activeLocation, activeEra } = useApp()
-  const subtitle = TITLES[pathname] ?? '时空探索'
+  const subtitle = ROUTE_TITLES[pathname] ?? '时空探索'
   const era = getEra(activeEra)
 
   return (

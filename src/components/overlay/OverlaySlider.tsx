@@ -34,7 +34,9 @@ export default function OverlaySlider({ past, present, pastLabel, presentLabel }
       onMouseMove={(e) => dragging.current && updateFromClientX(e.clientX)}
       onMouseUp={() => (dragging.current = false)}
       onMouseLeave={() => (dragging.current = false)}
-      onTouchMove={(e) => updateFromClientX(e.touches[0].clientX)}
+      onTouchMove={(e) => dragging.current && updateFromClientX(e.touches[0].clientX)}
+      onTouchEnd={() => (dragging.current = false)}
+      onTouchCancel={() => (dragging.current = false)}
     >
       {/* 今（底层，整张显示） */}
       <div className="absolute inset-0">{present}</div>
@@ -55,7 +57,7 @@ export default function OverlaySlider({ past, present, pastLabel, presentLabel }
       {/* 分隔线 + 拖柄 */}
       <div className="absolute inset-y-0 z-10 w-0.5 bg-seal" style={{ left: `${pos}%` }}>
         <button
-          className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize rounded-full bg-seal px-2 py-3 text-[10px] font-bold text-parchment-50 shadow-lg"
+          className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize touch-none rounded-full bg-seal px-2 py-3 text-[10px] font-bold text-parchment-50 shadow-lg"
           onMouseDown={(e) => {
             e.preventDefault()
             dragging.current = true

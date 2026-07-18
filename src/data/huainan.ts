@@ -123,7 +123,7 @@ export const HUAINAN: Location = {
   coord: { lat: 32.6476, lng: 117.0183 },
   cover: '⛰️',
   tagline: '淮水之南，楚都遗韵与煤电之都的千年叠影',
-  eras: ['2026', '2000', '1950', '1900', '1800', 'ancient'],
+  eras: ['2026', '1950', '1900', '1800', 'ancient'],
   geo: {
     bbox: HUAINAN_BBOX,
     boundary: HUAINAN_BOUNDARY,

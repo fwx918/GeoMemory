@@ -1,18 +1,11 @@
 import { NavLink } from 'react-router-dom'
-
-const TABS = [
-  { to: '/map', emoji: '🗺️', label: '时空地图' },
-  { to: '/place', emoji: '📖', label: '此地从前' },
-  { to: '/overlay', emoji: '🏛️', label: '古今对照' },
-  { to: '/guide', emoji: '🤖', label: '时空导游' },
-  { to: '/nearby', emoji: '🚶', label: '身边故事' },
-]
+import { NAV_ITEMS } from './nav'
 
 export default function BottomTabBar() {
   return (
     <nav className="z-20 border-t border-white/5 bg-ink-soft/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
       <ul className="flex">
-        {TABS.map((tab) => (
+        {NAV_ITEMS.map((tab) => (
           <li key={tab.to} className="flex-1">
             <NavLink
               to={tab.to}
@@ -31,7 +24,7 @@ export default function BottomTabBar() {
                   >
                     {tab.emoji}
                   </span>
-                  <span className="font-medium">{tab.label}</span>
+                  <span className="font-medium">{tab.shortLabel}</span>
                 </>
               )}
             </NavLink>

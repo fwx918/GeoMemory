@@ -109,7 +109,7 @@ export const HANGZHOU: Location = {
   coord: { lat: 30.2469, lng: 120.1494 },
   cover: '🏞️',
   tagline: '一池碧水，照见千年文人风骨',
-  eras: ['2026', '2000', '1950', '1900', '1800', 'ancient'],
+  eras: ['2026', '1900', '1800', 'ancient'],
   geo: {
     bbox: BBOX,
     boundary: BOUNDARY,

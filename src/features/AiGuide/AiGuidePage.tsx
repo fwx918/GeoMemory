@@ -10,6 +10,35 @@ const SUGGESTIONS = [
   '古今有什么变化？',
 ]
 
+interface ChipsProps {
+  onSend: (s: string) => void
+  disabled?: boolean
+  variant: 'stack' | 'row'
+}
+
+/** 建议追问按钮，空态竖排 / 底部横排两种布局，统一带 disabled 守卫 */
+function SuggestionChips({ onSend, disabled, variant }: ChipsProps) {
+  const wrap = variant === 'stack' ? 'flex flex-col gap-2' : 'flex gap-2 overflow-x-auto no-scrollbar'
+  const chip =
+    variant === 'stack'
+      ? 'mx-auto rounded-full border border-white/10 bg-ink-soft/70 px-4 py-2 text-sm text-parchment-100/85'
+      : 'shrink-0 rounded-full border border-white/10 bg-ink-soft/70 px-3 py-1 text-[11px] text-parchment-100/80'
+  return (
+    <div className={wrap}>
+      {SUGGESTIONS.map((s) => (
+        <button
+          key={s}
+          onClick={() => onSend(s)}
+          disabled={disabled}
+          className={`${chip} transition active:scale-95 disabled:opacity-40`}
+        >
+          {s}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 export default function AiGuidePage() {
   const { activeLocation, chat } = useApp()
   const { isTyping, send } = useAiGuide()
@@ -23,17 +52,7 @@ export default function AiGuidePage() {
           像与历史学家聊天一样，问我关于「{activeLocation.name}」的一切
         </p>
       </div>
-      <div className="flex flex-col gap-2">
-        {SUGGESTIONS.map((s) => (
-          <button
-            key={s}
-            onClick={() => send(s)}
-            className="mx-auto rounded-full border border-white/10 bg-ink-soft/70 px-4 py-2 text-sm text-parchment-100/85 active:scale-95"
-          >
-            {s}
-          </button>
-        ))}
-      </div>
+      <SuggestionChips onSend={send} disabled={isTyping} variant="stack" />
     </div>
   )
 
@@ -53,16 +72,8 @@ export default function AiGuidePage() {
 
       {/* 已有对话时，底部仍提供快捷追问 */}
       {chat.length > 0 && (
-        <div className="mx-auto flex w-full max-w-3xl gap-2 overflow-x-auto no-scrollbar border-t border-white/5 px-3 py-2">
-          {SUGGESTIONS.map((s) => (
-            <button
-              key={s}
-              onClick={() => send(s)}
-              className="shrink-0 rounded-full border border-white/10 bg-ink-soft/70 px-3 py-1 text-[11px] text-parchment-100/80 active:scale-95"
-            >
-              {s}
-            </button>
-          ))}
+        <div className="mx-auto w-full max-w-3xl border-t border-white/5 px-3 py-2">
+          <SuggestionChips onSend={send} disabled={isTyping} variant="row" />
         </div>
       )}
 
