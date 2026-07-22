@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { EraKey, Location } from '../types'
-import { AI_QA_RULES, ERA_PHRASE_MAP, getClosestEra, getEra, getRecord } from '../data'
+import type { Location } from '../types'
+import {
+  AI_QA_RULES,
+  ERA_PHRASE_MAP,
+  getClosestEraByYear,
+  getEraDef,
+  getRecord,
+} from '../data'
 import { useApp } from '../context/AppContext'
 
 const GUIDE_PREFIX = '【时空导游】'
@@ -8,9 +14,9 @@ const GUIDE_PREFIX = '【时空导游】'
 // 模块级单调计数器：跨组件挂载/卸载保持唯一，避免对话在导航后 id 冲突
 let msgSeq = 0
 
-function detectEra(query: string): EraKey | undefined {
-  for (const { phrases, era } of ERA_PHRASE_MAP) {
-    if (phrases.some((p) => query.includes(p.toLowerCase()))) return era
+function detectEraYear(query: string): { year: number; label: string } | undefined {
+  for (const { phrases, year, label } of ERA_PHRASE_MAP) {
+    if (phrases.some((p) => query.includes(p.toLowerCase()))) return { year, label }
   }
   return undefined
 }
@@ -20,24 +26,25 @@ export function composeAnswer(query: string, loc: Location): string {
   const q = query.trim().toLowerCase()
 
   // 1) 先匹配意图关键词（地名由来 / 人物 / 事件 / 对比 / 生活）。
-  //    放在年代检测之前，避免「为什么叫唐人街」被「唐」劫持等问题。
+  //    放在年代检测之前，避免「为什么叫唐人街」被朝代词劫持。
   for (const rule of AI_QA_RULES) {
     if (rule.keywords.some((k) => q.includes(k.toLowerCase()))) {
       return `${GUIDE_PREFIX}${rule.answer(loc)}`
     }
   }
 
-  // 2) 若提到具体年代，回答该年代的快照；若该地点缺该年代记录，
-  //    就近回退并明确说明，避免把「1800 年」冒充成「500 年前」。
-  const era = detectEra(q)
-  if (era) {
-    const actual = getClosestEra(loc, era)
-    const rec = actual ? getRecord(loc, actual) : undefined
-    if (rec && actual) {
-      const note =
-        actual !== era
-          ? `（我暂时没有「${loc.name}」${getEra(era).label}的独立记载，为你呈现最接近的${getEra(actual).label}）\n`
-          : ''
+  // 2) 若提到具体年代/朝代，按年份在当前地点的时间轴上就近取时代；
+  //    所问年份不落在该时代区间时明确说明，不冒充。
+  const asked = detectEraYear(q)
+  if (asked) {
+    const key = getClosestEraByYear(loc, asked.year)
+    const def = key ? getEraDef(loc, key) : undefined
+    const rec = key ? getRecord(loc, key) : undefined
+    if (rec && def) {
+      const inRange = asked.year >= def.yearRange[0] && asked.year <= def.yearRange[1]
+      const note = inRange
+        ? ''
+        : `（我暂时没有「${loc.name}」${asked.label}的独立记载，为你呈现最接近的${def.label}）\n`
       return `${GUIDE_PREFIX}${note}${rec.title}——\n${rec.summary}\n\n要点：${rec.highlights.join('、')}。`
     }
   }

@@ -1,9 +1,9 @@
-import type { EraKey, EraRecord, Location } from '../types'
+import type { EraDef, EraKey, EraRecord, Location } from '../types'
 import { LOCATIONS } from './locations'
-import { ERAS } from './eras'
+import { LEGACY_ERA_BY_KEY, LEGACY_ERA_DEFS } from './eras'
 
 export { LOCATIONS } from './locations'
-export { ERAS, ERA_BY_KEY, getEra } from './eras'
+export { LEGACY_ERA_DEFS, LEGACY_ERA_BY_KEY } from './eras'
 export { AI_QA_RULES, ERA_PHRASE_MAP } from './aiResponses'
 
 export function getAllLocations(): Location[] {
@@ -43,33 +43,58 @@ export function searchLocationByAddress(text: string): Location | undefined {
   return best?.loc
 }
 
-/** 返回某地点真正拥有记录的时代列表（保持从今到古的顺序） */
+// ---------------------------------------------------------------- 时间轴
+
+/** 地点时间轴（从今到古）：自带 timeline 优先，否则由旧版 6 档 × eras 派生 */
+export function getTimeline(loc: Location): EraDef[] {
+  if (loc.timeline) return loc.timeline
+  return LEGACY_ERA_DEFS.filter((e) => loc.eras.includes(e.key))
+}
+
+export function getEraDef(loc: Location, key: EraKey): EraDef | undefined {
+  return getTimeline(loc).find((e) => e.key === key)
+}
+
+/** 时代 key → 展示用标签（时间轴外的地点/旧 key 也能优雅回退） */
+export function resolveEraLabel(loc: Location, key: EraKey): { label: string; dynasty?: string } {
+  const def = getEraDef(loc, key) ?? LEGACY_ERA_BY_KEY[key]
+  return def ? { label: def.label, dynasty: def.dynasty } : { label: key }
+}
+
+/** 地点真正拥有记录的时代定义（保持从今到古的顺序） */
+export function getAvailableEraDefs(loc: Location): EraDef[] {
+  return getTimeline(loc).filter((e) => loc.records[e.key])
+}
+
 export function getAvailableEras(loc: Location): EraKey[] {
-  const order = ERAS.map((e) => e.key)
-  return order.filter((k) => loc.eras.includes(k) && loc.records[k])
+  return getAvailableEraDefs(loc).map((e) => e.key)
+}
+
+/** 在可用时代中找代表年份最接近 year 的一个 */
+export function getClosestEraByYear(loc: Location, year: number): EraKey | undefined {
+  const avail = getAvailableEraDefs(loc)
+  if (avail.length === 0) return undefined
+  let best = avail[0]
+  let bestDiff = Infinity
+  for (const e of avail) {
+    const diff = Math.abs(e.year - year)
+    if (diff < bestDiff) {
+      bestDiff = diff
+      best = e
+    }
+  }
+  return best.key
 }
 
 /**
- * 在某地点可用的时代中，找到与目标时代最接近的一个（按年份距离）。
- * 目标时代本身可用时原样返回；无任何记录时返回 undefined。
- * 这是「就近回退」策略的唯一实现，供 getRecord / AppContext / Nearby 复用。
+ * 「就近回退」的唯一实现：目标时代可用则原样返回；
+ * 否则解析其代表年份（地点时间轴 → 旧版全局表），按年份就近。
  */
 export function getClosestEra(loc: Location, era: EraKey): EraKey | undefined {
-  const available = getAvailableEras(loc)
-  if (available.length === 0) return undefined
-  if (available.includes(era)) return era
-  const target = ERAS.find((e) => e.key === era)?.year ?? 0
-  let closest = available[0]
-  let bestDiff = Infinity
-  for (const k of available) {
-    const y = ERAS.find((e) => e.key === k)?.year ?? 0
-    const diff = Math.abs(y - target)
-    if (diff < bestDiff) {
-      bestDiff = diff
-      closest = k
-    }
-  }
-  return closest
+  if (loc.records[era]) return era
+  const year = (getEraDef(loc, era) ?? LEGACY_ERA_BY_KEY[era])?.year
+  if (year === undefined) return getAvailableEras(loc)[0]
+  return getClosestEraByYear(loc, year)
 }
 
 /** 取某地点某时代的记录；若该时代缺失，回退到最接近的可用时代 */

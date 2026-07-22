@@ -1,13 +1,13 @@
 import { useLocation } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
-import { getEra } from '../../data'
+import { resolveEraLabel } from '../../data'
 import { ROUTE_TITLES } from './nav'
 
 export default function AppHeader() {
   const { pathname } = useLocation()
   const { activeLocation, activeEra } = useApp()
   const subtitle = ROUTE_TITLES[pathname] ?? '时空探索'
-  const era = getEra(activeEra)
+  const era = resolveEraLabel(activeLocation, activeEra)
 
   return (
     <header className="sticky top-0 z-20 border-b border-white/5 bg-ink/95 px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)] backdrop-blur lg:px-8 lg:py-4">

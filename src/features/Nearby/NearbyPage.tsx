@@ -75,7 +75,7 @@ export default function NearbyPage() {
                       {spot.blurb}
                     </p>
                     <div className="mt-1.5">
-                      <EraBadge era={spot.era} />
+                      <EraBadge loc={nearest} era={spot.era} />
                     </div>
                   </div>
                 </button>

@@ -37,3 +37,6 @@ pnpm-debug.log*
 .env
 .env.*
 !.env.example
+
+# Geo pipeline raw downloads
+scripts/geo/raw

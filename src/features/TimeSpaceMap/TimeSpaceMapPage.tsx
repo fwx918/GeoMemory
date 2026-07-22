@@ -1,13 +1,15 @@
+import { useMemo } from 'react'
 import { useApp } from '../../context/AppContext'
-import { getRecord } from '../../data'
+import { getAvailableEraDefs, getRecord } from '../../data'
 import LocationPicker from '../../components/common/LocationPicker'
 import GeoMap from '../../components/map/GeoMap'
 import TimelineSlider from '../../components/timeline/TimelineSlider'
 import StoryCard from '../../components/common/StoryCard'
 
 export default function TimeSpaceMapPage() {
-  const { activeLocation, activeEra, setActiveEra, availableEras } = useApp()
+  const { activeLocation, activeEra, setActiveEra } = useApp()
   const record = getRecord(activeLocation, activeEra)
+  const eraDefs = useMemo(() => getAvailableEraDefs(activeLocation), [activeLocation])
 
   return (
     <div className="mx-auto max-w-6xl space-y-4 p-4 lg:space-y-6 lg:p-8">
@@ -22,7 +24,7 @@ export default function TimeSpaceMapPage() {
 
         <div className="space-y-4">
           {/* 时间轴 */}
-          <TimelineSlider eras={availableEras} value={activeEra} onChange={setActiveEra} />
+          <TimelineSlider eras={eraDefs} value={activeEra} onChange={setActiveEra} />
 
           {/* 该时代记录 */}
           {record && (

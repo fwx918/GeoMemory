@@ -9,7 +9,8 @@
     "build": "tsc -b && vite build",
     "build:single": "tsc -b && vite build --config vite.config.artifact.ts",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "geo:build": "node scripts/geo/build.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",

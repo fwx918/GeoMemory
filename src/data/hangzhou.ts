@@ -1,207 +1,443 @@
 import type { GeoFeature, Location } from '../types'
+import { WEST_LAKE_RINGS } from './generated/westLake'
+import { QIANTANG_RIVER } from './generated/qiantangRiver'
 
-// 西湖以湖体为主角：用真实经纬度勾勒湖岸、苏堤/白堤、钱塘江与西山。
-// bbox 覆盖西湖风景区 + 东侧城区 + 东南钱塘江。
-const BBOX: [number, number, number, number] = [120.105, 30.19, 120.19, 30.278]
+// ============================================================================
+// 杭州（真实化试点）：
+// - 城区级 bbox，真实西湖水体（OSM 508 点 20 环，A 级）、钱塘江（Natural Earth，B 级）
+// - 山体/道路/运河/堤坝为手工数字化（C 级：真实走向近似）
+// - 南宋城墙/皇城/古湖岸线为文献复原示意（D 级：渲染为虚线）
+// - 11 档朝代级时间轴，内容依据 docs/plan/hangzhou-story-outline.md
+// ============================================================================
 
-// 西湖风景区一带的陆地范围（作为底图“陆地”）
-const BOUNDARY: [number, number][] = [
-  [120.108, 30.275],
-  [120.14, 30.277],
-  [120.184, 30.274],
-  [120.188, 30.24],
-  [120.185, 30.205],
-  [120.16, 30.193],
-  [120.13, 30.195],
-  [120.11, 30.21],
-  [120.106, 30.245],
-]
+// 城区级视图：西至灵隐，南至六和塔，北至拱宸桥，东含钱塘江北岸城区
+const BBOX: [number, number, number, number] = [120.06, 30.16, 120.24, 30.32]
 
-// 西湖真实湖体轮廓（近似）
+// ------------------------------------------------------------- 基础要素（跨时代）
+
 const WEST_LAKE: GeoFeature = {
   id: 'west-lake',
   kind: 'lake',
   name: '西湖',
-  coords: [
-    [120.15, 30.26],
-    [120.155, 30.252],
-    [120.156, 30.245],
-    [120.152, 30.238],
-    [120.148, 30.231],
-    [120.142, 30.229],
-    [120.137, 30.231],
-    [120.132, 30.236],
-    [120.13, 30.244],
-    [120.131, 30.252],
-    [120.137, 30.259],
-    [120.144, 30.261],
-  ],
+  coords: [],
+  rings: WEST_LAKE_RINGS,
+  accuracy: 'A',
 }
 
-// 钱塘江（西湖东南，自西向东）
-const QIANTANG_RIVER: GeoFeature = {
+const QIANTANG: GeoFeature = {
   id: 'qiantang-river',
   kind: 'river',
   name: '钱塘江',
+  coords: QIANTANG_RIVER,
+  accuracy: 'B',
+}
+
+// 山体（C 级手工多边形）
+const HILLS: GeoFeature[] = [
+  { id: 'baoshi-hill', kind: 'mountain', name: '宝石山·葛岭', accuracy: 'C', coords: [
+    [120.134, 30.2645], [120.144, 30.266], [120.152, 30.2635], [120.1495, 30.26],
+    [120.142, 30.2605], [120.135, 30.261],
+  ] },
+  { id: 'beigao-peak', kind: 'mountain', name: '北高峰', accuracy: 'C', coords: [
+    [120.088, 30.26], [120.098, 30.262], [120.108, 30.257], [120.104, 30.248],
+    [120.093, 30.246], [120.086, 30.252],
+  ] },
+  { id: 'nangao-peak', kind: 'mountain', name: '南高峰', accuracy: 'C', coords: [
+    [120.108, 30.236], [120.118, 30.238], [120.122, 30.231], [120.115, 30.225],
+    [120.106, 30.228],
+  ] },
+  { id: 'yuhuang-hill', kind: 'mountain', name: '玉皇山', accuracy: 'C', coords: [
+    [120.142, 30.226], [120.151, 30.227], [120.154, 30.219], [120.146, 30.215],
+    [120.139, 30.219],
+  ] },
+  { id: 'wu-hill', kind: 'mountain', name: '吴山', accuracy: 'C', coords: [
+    [120.158, 30.243], [120.166, 30.2425], [120.167, 30.237], [120.160, 30.236],
+    [120.156, 30.239],
+  ] },
+  { id: 'fenghuang-hill', kind: 'mountain', name: '凤凰山', accuracy: 'C', coords: [
+    [120.155, 30.231], [120.163, 30.2315], [120.166, 30.224], [120.159, 30.220],
+    [120.153, 30.225],
+  ] },
+]
+
+// 京杭大运河杭州段（拱宸桥→武林门→艮山门方向，C 级）
+const GRAND_CANAL: GeoFeature = {
+  id: 'grand-canal',
+  kind: 'canal',
+  name: '京杭大运河',
+  accuracy: 'C',
   coords: [
-    [120.118, 30.206],
-    [120.14, 30.199],
-    [120.165, 30.196],
-    [120.19, 30.199],
+    [120.133, 30.32], [120.139, 30.306], [120.145, 30.295], [120.152, 30.285],
+    [120.158, 30.276], [120.163, 30.27], [120.172, 30.266], [120.183, 30.264],
   ],
 }
 
-// 西山丘陵（西湖以西）
-const WEST_HILLS: GeoFeature = {
-  id: 'west-hills',
-  kind: 'mountain',
-  name: '西山',
-  coords: [
-    [120.108, 30.26],
-    [120.122, 30.258],
-    [120.125, 30.24],
-    [120.115, 30.228],
-    [120.107, 30.238],
-  ],
-}
+// ------------------------------------------------------------- 堤坝（C 级）
 
-// 苏堤（南北纵贯湖面）
 const SU_CAUSEWAY: GeoFeature = {
-  id: 'su-causeway',
-  kind: 'road',
-  name: '苏堤',
+  id: 'su-causeway', kind: 'road', name: '苏堤', accuracy: 'C',
   coords: [
-    [120.14, 30.259],
-    [120.139, 30.246],
-    [120.138, 30.232],
+    [120.1317, 30.2568], [120.1325, 30.25], [120.1335, 30.244], [120.136, 30.236],
+    [120.1385, 30.231],
   ],
 }
-
-// 白堤（北部东西向）
 const BAI_CAUSEWAY: GeoFeature = {
-  id: 'bai-causeway',
-  kind: 'road',
-  name: '白堤',
+  id: 'bai-causeway', kind: 'road', name: '白堤', accuracy: 'C',
+  coords: [[120.1517, 30.2587], [120.148, 30.257], [120.1445, 30.2555]],
+}
+const YANGGONG_CAUSEWAY: GeoFeature = {
+  id: 'yanggong-causeway', kind: 'road', name: '杨公堤', accuracy: 'C',
   coords: [
-    [120.15, 30.26],
-    [120.146, 30.2595],
-    [120.142, 30.259],
+    [120.1245, 30.2525], [120.1247, 30.244], [120.1252, 30.236], [120.127, 30.231],
   ],
 }
 
-// 古代潟湖：与钱塘江相连的水道
-const ANCIENT_LAGOON: GeoFeature = {
-  id: 'ancient-lagoon',
-  kind: 'river',
-  name: '古潟湖水道',
+// ------------------------------------------------------------- 历史要素（D 级复原）
+
+// 秦汉：海湾/潟湖时期的古岸线（湖尚未成形，水面东抵今湖滨一带）
+const ANCIENT_SHORELINE: GeoFeature = {
+  id: 'ancient-shoreline', kind: 'shoreline-old', name: '古海湾岸线', accuracy: 'D',
   coords: [
-    [120.142, 30.229],
-    [120.14, 30.218],
-    [120.138, 30.206],
+    [120.152, 30.263], [120.158, 30.257], [120.163, 30.25], [120.166, 30.242],
+    [120.164, 30.235],
   ],
 }
+
+// 吴越：捍海石塘（910 年钱镠筑，沿江一线）
+const SEAWALL: GeoFeature = {
+  id: 'wuyue-seawall', kind: 'wall', name: '捍海石塘', accuracy: 'D',
+  coords: [
+    [120.14, 30.201], [120.155, 30.208], [120.17, 30.214], [120.188, 30.223],
+  ],
+}
+
+// 南宋：临安外城城墙（依方志复原示意）
+const LINAN_WALL: GeoFeature = {
+  id: 'linan-wall', kind: 'wall', name: '临安城墙', accuracy: 'D',
+  coords: [
+    [120.166, 30.22], [120.172, 30.224], [120.176, 30.235], [120.177, 30.25],
+    [120.175, 30.262], [120.168, 30.267], [120.161, 30.266], [120.158, 30.256],
+    [120.157, 30.245], [120.158, 30.236], [120.161, 30.228], [120.163, 30.222],
+  ],
+}
+// 南宋：皇城（凤凰山东麓）
+const IMPERIAL_CITY: GeoFeature = {
+  id: 'imperial-city', kind: 'area', name: '南宋皇城', accuracy: 'D',
+  coords: [
+    [120.158, 30.22], [120.166, 30.221], [120.168, 30.227], [120.163, 30.23],
+    [120.157, 30.226],
+  ],
+}
+// 南宋：御街（和宁门→中山路一线北上）
+const IMPERIAL_STREET: GeoFeature = {
+  id: 'imperial-street', kind: 'road-major', name: '御街', accuracy: 'C',
+  coords: [
+    [120.166, 30.223], [120.168, 30.234], [120.169, 30.244], [120.168, 30.252],
+    [120.167, 30.258],
+  ],
+}
+
+// 元明：湖西湮塞为桑田（杨公堤以西）
+const SILTED_WEST: GeoFeature = {
+  id: 'silted-west', kind: 'area', name: '湖西湮塞（桑田）', accuracy: 'D',
+  coords: [
+    [120.122, 30.253], [120.13, 30.251], [120.132, 30.24], [120.129, 30.231],
+    [120.122, 30.234], [120.12, 30.246],
+  ],
+}
+
+// 明清：杭州府城墙（沿袭南宋城址，示意沿用同走向）
+const MING_QING_WALL: GeoFeature = {
+  id: 'fucheng-wall', kind: 'wall', name: '杭州府城墙', accuracy: 'D',
+  coords: LINAN_WALL.coords,
+}
+
+// 民国：沪杭铁路（东侧入城至城站）
+const HUHANG_RAIL: GeoFeature = {
+  id: 'huhang-rail', kind: 'rail', name: '沪杭铁路', accuracy: 'C',
+  coords: [
+    [120.24, 30.282], [120.213, 30.272], [120.194, 30.262], [120.184, 30.252],
+    [120.18, 30.246],
+  ],
+}
+
+// 当代：地铁 1 号线走向示意 + 主干路网（C 级）
+const METRO_LINE1: GeoFeature = {
+  id: 'metro-1', kind: 'rail', name: '地铁1号线', accuracy: 'C',
+  coords: [
+    [120.24, 30.292], [120.21, 30.277], [120.19, 30.266], [120.175, 30.258],
+    [120.166, 30.25], [120.161, 30.243], [120.168, 30.232], [120.176, 30.225],
+  ],
+}
+const MODERN_ROADS: GeoFeature[] = [
+  { id: 'beishan-rd', kind: 'road-major', name: '北山街', accuracy: 'C', coords: [
+    [120.13, 30.259], [120.14, 30.26], [120.1495, 30.259], [120.155, 30.2565],
+  ] },
+  { id: 'nanshan-rd', kind: 'road-major', name: '南山路', accuracy: 'C', coords: [
+    [120.157, 30.252], [120.1565, 30.243], [120.153, 30.234], [120.146, 30.2285],
+    [120.14, 30.2295],
+  ] },
+  { id: 'hubin-rd', kind: 'road-major', name: '湖滨路', accuracy: 'C', coords: [
+    [120.157, 30.2455], [120.1575, 30.253],
+  ] },
+  { id: 'yanan-rd', kind: 'road-major', name: '延安路', accuracy: 'C', coords: [
+    [120.1605, 30.24], [120.161, 30.25], [120.1615, 30.259], [120.163, 30.268],
+  ] },
+  { id: 'lingyin-rd', kind: 'road', name: '灵隐路', accuracy: 'C', coords: [
+    [120.13, 30.2525], [120.115, 30.2505], [120.103, 30.245],
+  ] },
+  { id: 'zhijiang-rd', kind: 'road', name: '之江路', accuracy: 'C', coords: [
+    [120.135, 30.203], [120.15, 30.2], [120.163, 30.206], [120.178, 30.214],
+  ] },
+]
+
+// ============================================================================
 
 export const HANGZHOU: Location = {
   id: 'hangzhou-west-lake',
   name: '杭州西湖',
-  aliases: ['西湖', '杭州西湖', '杭州市西湖区龙井路', '西湖区', '龙井路', '杭州', 'west lake', 'hangzhou'],
+  aliases: ['西湖', '杭州西湖', '杭州市西湖区龙井路', '西湖区', '龙井路', '杭州', 'west lake', 'hangzhou', '临安', '钱塘'],
   region: '浙江 · 杭州',
   coord: { lat: 30.2469, lng: 120.1494 },
   cover: '🏞️',
-  tagline: '一池碧水，照见千年文人风骨',
-  eras: ['2026', '1900', '1800', 'ancient'],
+  tagline: '一池碧水，照见两千年城湖相生',
+  timeline: [
+    { key: 'now', label: '当代', dynasty: '还湖于民·世界遗产', yearRange: [2000, 2026], year: 2015, weight: 3 },
+    { key: 'prc', label: '1950-2000', dynasty: '大疏浚·公园时代', yearRange: [1949, 1999], year: 1975, weight: 1 },
+    { key: 'republic', label: '民国', dynasty: '塔倒了·城开了', yearRange: [1911, 1949], year: 1930, weight: 2 },
+    { key: 'qing', label: '清', dynasty: '御笔十景', yearRange: [1644, 1911], year: 1780, weight: 2 },
+    { key: 'yuan-ming', label: '元明', dynasty: '湮塞与重生', yearRange: [1276, 1644], year: 1500, weight: 1 },
+    { key: 'south-song', label: '南宋', dynasty: '行在临安', yearRange: [1127, 1276], year: 1200, weight: 3 },
+    { key: 'north-song', label: '北宋', dynasty: '苏轼浚湖', yearRange: [960, 1127], year: 1090, weight: 2 },
+    { key: 'wuyue', label: '吴越', dynasty: '东南佛国', yearRange: [907, 978], year: 940, weight: 2 },
+    { key: 'tang', label: '唐', dynasty: '白居易', yearRange: [618, 907], year: 823, weight: 2 },
+    { key: 'sui', label: '隋', dynasty: '杭州得名', yearRange: [589, 618], year: 600, weight: 1 },
+    { key: 'qin-six', label: '秦汉六朝', dynasty: '钱唐县', yearRange: [-222, 588], year: 300, weight: 1 },
+  ],
+  eras: ['now', 'prc', 'republic', 'qing', 'yuan-ming', 'south-song', 'north-song', 'wuyue', 'tang', 'sui', 'qin-six'],
   geo: {
     bbox: BBOX,
-    boundary: BOUNDARY,
-    base: [WEST_LAKE, QIANTANG_RIVER, WEST_HILLS],
+    base: [WEST_LAKE, QIANTANG, GRAND_CANAL, ...HILLS],
   },
   records: {
-    '2026': {
-      era: '2026',
-      title: '西湖 · 当代',
+    'qin-six': {
+      era: 'qin-six',
+      title: '钱唐县 · 海湾变潟湖',
       summary:
-        '今天的西湖是免费开放的世界文化遗产景区，环湖地铁与绿道串联起断桥、苏堤与雷峰塔。每到夜晚，音乐喷泉与灯光秀映在湖面，游人如织。',
-      highlights: ['世界文化遗产', '环湖免费开放', '地铁直达湖滨', '一年四季客流不息'],
-      imageHint: '🚇',
+        '秦置钱唐县时还没有西湖——只有一个与钱塘江相通的浅海湾，宝石山与吴山是伸入水中的两个岬角。东汉地方官华信筑防海大塘，泥沙渐渐封住湾口，海湾淡化成潟湖，早期称「武林水」「钱塘湖」。东晋咸和元年（326），印度僧人慧理惊叹北高峰南麓「不知何以飞来」，建灵隐寺，飞来峰由此得名。',
+      highlights: ['前222 秦置钱唐县', '东汉华信筑塘，海湾成湖', '326 慧理建灵隐寺'],
+      imageHint: '🌊',
       geoOverlay: {
-        features: [SU_CAUSEWAY, BAI_CAUSEWAY],
+        features: [ANCIENT_SHORELINE],
         markers: [
-          { id: 'broken-bridge', name: '断桥', lng: 120.15, lat: 30.26, kind: 'landmark' },
-          { id: 'leifeng', name: '雷峰塔', lng: 120.148, lat: 30.231, kind: 'landmark' },
-          { id: 'baochu', name: '保俶塔', lng: 120.146, lat: 30.263, kind: 'landmark' },
-          { id: 'metro', name: '龙翔桥地铁站', lng: 120.158, lat: 30.252, kind: 'transit' },
+          { id: 'baoshi-cape', name: '宝石山(古岬角)', lng: 120.145, lat: 30.2585, kind: 'landmark' },
+          { id: 'wushan-cape', name: '吴山(古岬角)', lng: 120.1637, lat: 30.2408, kind: 'landmark' },
+          { id: 'lingyin', name: '灵隐寺', lng: 120.1009, lat: 30.2419, kind: 'temple' },
+          { id: 'feilai', name: '飞来峰', lng: 120.1024, lat: 30.2408, kind: 'temple' },
         ],
       },
     },
-    '1900': {
-      era: '1900',
-      title: '西湖 · 清末',
+    sui: {
+      era: 'sui',
+      title: '杭州 · 得名与运河',
       summary:
-        '清末的西湖周边多为农田、茶园与寺庙。雷峰塔已显倾颓，湖岸尚无环湖马路，文人雅士乘乌篷船游湖，沿岸是香市与茶肆。',
-      highlights: ['雷峰塔残破', '环湖皆农田茶园', '乌篷船游湖', '龙井茶初具盛名'],
-      imageHint: '⛵',
+        '隋开皇九年（589）废钱唐郡置「杭州」，这个名字第一次出现在版图上。开皇十一年杨素把州治迁到凤凰山麓，依山筑起周三十六里的州城——此后近千年，凤凰山下始终是杭州的政治中心。大业六年（610）江南运河凿通，京口至余杭八百余里，杭州从东南小城一跃成为水运枢纽。',
+      highlights: ['589 「杭州」之名始于此', '591 杨素筑州城于凤凰山', '610 江南运河凿通'],
+      imageHint: '🚣',
       geoOverlay: {
-        features: [SU_CAUSEWAY, BAI_CAUSEWAY],
         markers: [
-          { id: 'leifeng-old', name: '雷峰塔(残)', lng: 120.148, lat: 30.231, kind: 'landmark' },
-          { id: 'tea', name: '龙井茶园', lng: 120.118, lat: 30.232, kind: 'village' },
-          { id: 'temple', name: '净慈寺', lng: 120.146, lat: 30.233, kind: 'temple' },
+          { id: 'fenghuang-seat', name: '隋州治(凤凰山)', lng: 120.161, lat: 30.226, kind: 'landmark' },
+          { id: 'liupu', name: '柳浦(古渡)', lng: 120.1668, lat: 30.2205, kind: 'transit' },
+          { id: 'canal-end', name: '运河南端', lng: 120.152, lat: 30.285, kind: 'water' },
         ],
       },
     },
-    '1800': {
-      era: '1800',
-      title: '西湖 · 清嘉庆',
+    tang: {
+      era: 'tang',
+      title: '唐 · 最忆是杭州',
       summary:
-        '嘉庆年间，西湖延续着「西湖十景」的格局。苏堤春晓、断桥残雪皆为文人题咏的对象。湖中画舫往来，岸边香客云集，雷峰塔仍巍然矗立。',
-      highlights: ['西湖十景成型', '雷峰塔完整', '画舫游湖之风极盛', '香市繁荣'],
-      imageHint: '🛕',
-      geoOverlay: {
-        features: [SU_CAUSEWAY, BAI_CAUSEWAY],
-        markers: [
-          { id: 'leifeng-full', name: '雷峰塔', lng: 120.148, lat: 30.231, kind: 'landmark' },
-          { id: 'su', name: '苏堤', lng: 120.139, lat: 30.246, kind: 'water' },
-          { id: 'bai', name: '白堤', lng: 120.145, lat: 30.2595, kind: 'water' },
-        ],
-      },
-    },
-    ancient: {
-      era: 'ancient',
-      title: '西湖 · 唐宋',
-      summary:
-        '唐代白居易、北宋苏轼先后任职杭州，疏浚西湖、筑堤为路，遂有「白堤」「苏堤」。彼时西湖本是与钱塘江相连的浅海潟湖，经历代治理才成为今日的城中名湖。',
-      highlights: ['本为海湾潟湖', '白居易筑白堤', '苏轼筑苏堤', '「淡妆浓抹总相宜」'],
+        '唐代杭州户口逾十万，跻身东南名郡。贞元年间刺史李泌开六井，用暗渠把西湖淡水引入咸卤的城区，城市重心开始向湖边聚拢。长庆二年（822）白居易出任杭州刺史，修堤蓄水、规定「放水一寸可溉田十五顷」，写下「最爱湖东行不足，绿杨阴里白沙堤」——今天的白堤，就是杭州人对他的纪念。',
+      highlights: ['约781 李泌开六井引湖水入城', '822 白居易任杭州刺史', '823-824 修堤浚湖'],
       imageHint: '🖌️',
       geoOverlay: {
-        features: [ANCIENT_LAGOON],
+        features: [BAI_CAUSEWAY],
         markers: [
-          { id: 'su-ancient', name: '苏轼治湖', lng: 120.139, lat: 30.246, kind: 'water' },
-          { id: 'bai-ancient', name: '白居易筑堤', lng: 120.146, lat: 30.259, kind: 'water' },
-          { id: 'lagoon', name: '古潟湖', lng: 120.14, lat: 30.214, kind: 'water' },
+          { id: 'bai-di', name: '白沙堤', lng: 120.148, lat: 30.257, kind: 'landmark' },
+          { id: 'duanqiao-tang', name: '断桥', lng: 120.1517, lat: 30.2587, kind: 'landmark' },
+          { id: 'xiangguo-well', name: '相国井(六井)', lng: 120.162, lat: 30.2489, kind: 'water' },
+          { id: 'gushan-tang', name: '孤山', lng: 120.142, lat: 30.254, kind: 'landmark' },
+        ],
+      },
+    },
+    wuyue: {
+      era: 'wuyue',
+      title: '吴越国 · 保境安民',
+      summary:
+        '唐亡后钱镠建吴越国，定都杭州，乱世中独享七十年太平。910 年他「石囤木桩」筑捍海塘压住江潮，民间尊称「海龙王」；又设千人「撩湖兵」专职浚湖。吴越崇佛，杭州号称「东南佛国」：六和塔镇江潮、保俶塔立宝石山巅，977 年钱俶建雷峰塔——次年他纳土归宋，杭州免于战火。',
+      highlights: ['907 钱镠建吴越国', '910 筑捍海石塘', '977 建雷峰塔·978 纳土归宋'],
+      imageHint: '🛕',
+      geoOverlay: {
+        features: [SEAWALL, BAI_CAUSEWAY],
+        markers: [
+          { id: 'leifeng-wuyue', name: '雷峰塔(977建)', lng: 120.1489, lat: 30.2313, kind: 'landmark' },
+          { id: 'baochu-wuyue', name: '保俶塔', lng: 120.1456, lat: 30.2593, kind: 'landmark' },
+          { id: 'liuhe', name: '六和塔(970建)', lng: 120.1319, lat: 30.1997, kind: 'landmark' },
+          { id: 'jingci', name: '净慈寺(954建)', lng: 120.1476, lat: 30.23, kind: 'temple' },
+        ],
+      },
+    },
+    'north-song': {
+      era: 'north-song',
+      title: '北宋 · 苏轼浚湖筑堤',
+      summary:
+        '元祐四年（1089）苏轼知杭州，此时西湖「葑合之地」近半。他上《乞开杭州西湖状》，断言「杭州之有西湖，如人之有眉目」，募工二十万疏浚全湖，把挖出的葑泥纵贯南北筑成长堤，上建六桥、遍植芙蓉杨柳——杭人呼为「苏公堤」。他还在湖中立三座石塔禁种菱芡，即三潭印月的前身。',
+      highlights: ['1071 苏轼任杭州通判', '1089 知杭州', '1090 疏浚西湖·筑苏堤'],
+      imageHint: '📜',
+      geoOverlay: {
+        features: [SU_CAUSEWAY, BAI_CAUSEWAY],
+        markers: [
+          { id: 'su-di', name: '苏堤(1090筑)', lng: 120.133, lat: 30.241, kind: 'landmark' },
+          { id: 'santan-song', name: '三潭石塔', lng: 120.1435, lat: 30.2382, kind: 'water' },
+          { id: 'longjing-song', name: '龙井', lng: 120.116, lat: 30.221, kind: 'village' },
+        ],
+      },
+    },
+    'south-song': {
+      era: 'south-song',
+      title: '临安 · 行在一百五十年',
+      summary:
+        '靖康之变后宋室南渡，1138 年定杭州为「行在所」，升临安府。皇城圈占凤凰山东麓，一条御街从和宁门直通城北——就是今天的中山路。临安人口号称过百万，《梦粱录》记夜市至三更不绝。1142 年岳飞以「莫须有」罪名遇害，后迁葬栖霞岭。画院题出「平湖秋月」「断桥残雪」，西湖十景由此定型。',
+      highlights: ['1138 定都临安', '1142 岳飞遇害', '西湖十景之名定型', '1276 元军入临安'],
+      imageHint: '🏯',
+      geoOverlay: {
+        features: [LINAN_WALL, IMPERIAL_CITY, IMPERIAL_STREET, SU_CAUSEWAY, BAI_CAUSEWAY],
+        markers: [
+          { id: 'imperial', name: '南宋皇城', lng: 120.163, lat: 30.223, kind: 'landmark' },
+          { id: 'yujie', name: '御街(今中山路)', lng: 120.169, lat: 30.244, kind: 'transit' },
+          { id: 'yuefei', name: '岳飞墓(栖霞岭)', lng: 120.1387, lat: 30.2559, kind: 'landmark' },
+          { id: 'jingci-jigong', name: '净慈寺(济公圆寂)', lng: 120.1476, lat: 30.23, kind: 'temple' },
+        ],
+      },
+    },
+    'yuan-ming': {
+      era: 'yuan-ming',
+      title: '元明 · 湮塞与重生',
+      summary:
+        '元代西湖疏于治理，苏堤以西渐成桑田，「西湖遂废」；飞来峰上却在此期开凿出大批藏式造像。转机在明正德三年（1508）：知州杨孟瑛力排众议，役工数百万疏浚全湖，挖出的泥筑成西侧长堤——杨公堤，与白苏二堤并称「西湖三堤」。杭州人于谦少年在吴山读书写下《石灰吟》，冤死后归葬三台山，西湖多了一座忠魂祠。',
+      highlights: ['元代 飞来峰藏式造像', '1508 杨孟瑛浚湖筑杨公堤', '于谦归葬三台山'],
+      imageHint: '🌾',
+      geoOverlay: {
+        features: [SILTED_WEST, MING_QING_WALL, SU_CAUSEWAY, BAI_CAUSEWAY, YANGGONG_CAUSEWAY],
+        markers: [
+          { id: 'yanggong', name: '杨公堤(1508筑)', lng: 120.125, lat: 30.24, kind: 'landmark' },
+          { id: 'yuqian', name: '于谦墓(三台山)', lng: 120.1265, lat: 30.229, kind: 'landmark' },
+          { id: 'huxin', name: '湖心亭', lng: 120.1447, lat: 30.2455, kind: 'landmark' },
+        ],
+      },
+    },
+    qing: {
+      era: 'qing',
+      title: '清 · 皇帝的西湖',
+      summary:
+        '康熙南巡屡驻杭州，1699 年为西湖十景逐一题名立碑，「曲院风荷」「花港观鱼」的今名即出康熙手笔；乾隆六下江南次次入住孤山行宫，又为十景各赋诗刻于碑阴。1782 年《四库全书》成，杭州建文澜阁贮藏全书，江南士子可就近抄阅。西湖至此完成从州郡湖泊到「天下景」的加冕。',
+      highlights: ['1699 康熙题定西湖十景', '乾隆六下江南驻孤山行宫', '1782 建文澜阁贮《四库全书》'],
+      imageHint: '🖋️',
+      geoOverlay: {
+        features: [MING_QING_WALL, SU_CAUSEWAY, BAI_CAUSEWAY, YANGGONG_CAUSEWAY],
+        markers: [
+          { id: 'xinggong', name: '清行宫(孤山)', lng: 120.142, lat: 30.2545, kind: 'landmark' },
+          { id: 'wenlan', name: '文澜阁', lng: 120.1428, lat: 30.2537, kind: 'building' },
+          { id: 'quyuan', name: '曲院风荷', lng: 120.131, lat: 30.2495, kind: 'water' },
+          { id: 'huagang', name: '花港观鱼', lng: 120.1325, lat: 30.2325, kind: 'water' },
+          { id: 'longjing-qing', name: '龙井茶园', lng: 120.116, lat: 30.221, kind: 'village' },
+        ],
+      },
+    },
+    republic: {
+      era: 'republic',
+      title: '民国 · 塔倒了，城开了',
+      summary:
+        '1911 年杭州光复后拆除旗营城墙——湖与城之间最后一道墙没了，旗营旧址辟为「湖滨新市场」，杭州第一次真正面湖而居。1924 年 9 月 25 日，年久失修的雷峰塔轰然倒塌，鲁迅连写《论雷峰塔的倒掉》；塔砖中还发现了吴越刻本佛经。1929 年西湖博览会观众逾千万人次。秋瑾归葬西泠桥畔，李叔同在虎跑剃度为弘一。',
+      highlights: ['1912-1914 拆旗营辟湖滨', '1924.9.25 雷峰塔倒塌', '1929 西湖博览会'],
+      imageHint: '📰',
+      geoOverlay: {
+        features: [HUHANG_RAIL, SU_CAUSEWAY, BAI_CAUSEWAY, YANGGONG_CAUSEWAY],
+        markers: [
+          { id: 'hubin-market', name: '湖滨新市场', lng: 120.157, lat: 30.253, kind: 'building' },
+          { id: 'leifeng-fallen', name: '雷峰塔遗址(1924塌)', lng: 120.1489, lat: 30.2313, kind: 'landmark' },
+          { id: 'qiujin', name: '秋瑾墓(西泠桥)', lng: 120.1398, lat: 30.2565, kind: 'landmark' },
+          { id: 'chengzhan', name: '城站(沪杭铁路)', lng: 120.18, lat: 30.245, kind: 'transit' },
+          { id: 'hupao', name: '虎跑(弘一出家)', lng: 120.1273, lat: 30.2094, kind: 'temple' },
+        ],
+      },
+    },
+    prc: {
+      era: 'prc',
+      title: '1950-2000 · 大疏浚与公园时代',
+      summary:
+        '1949 年时西湖平均水深仅半米多。1952-1958 年实施建国后首次大规模机械疏浚，挖出淤泥七百余万立方米，水深增至 1.8 米左右。园林学家孙筱祥主持把花港观鱼从一亭一池扩为二十余公顷大公园，环湖公园带成形。1985 年评出「新西湖十景」，1988 年太子湾公园建成，樱花与郁金香成为杭州春天的固定节目。',
+      highlights: ['1952-1958 西湖大疏浚', '花港观鱼扩建', '1985 新西湖十景', '1988 太子湾建成'],
+      imageHint: '🌷',
+      geoOverlay: {
+        features: [SU_CAUSEWAY, BAI_CAUSEWAY, YANGGONG_CAUSEWAY, ...MODERN_ROADS.slice(0, 4)],
+        markers: [
+          { id: 'huagang-park', name: '花港观鱼(扩建)', lng: 120.1325, lat: 30.2325, kind: 'water' },
+          { id: 'taiziwan', name: '太子湾公园', lng: 120.1425, lat: 30.227, kind: 'water' },
+          { id: 'botanic', name: '杭州植物园', lng: 120.123, lat: 30.253, kind: 'village' },
+        ],
+      },
+    },
+    now: {
+      era: 'now',
+      title: '当代 · 还湖于民与世界遗产',
+      summary:
+        '2002 年雷峰塔重建落成，「雷峰夕照」缺席 78 年后归位；同年杭州启动「还湖于民」，环湖公园拆墙、免票，「免费西湖」反而带动全城旅游，被称为「西湖模式」。2011 年 6 月 24 日，「杭州西湖文化景观」列入《世界遗产名录》。G20 与亚运会之后，「三面云山一面城」的格局一再成为世界镜头里的杭州。',
+      highlights: ['2002 雷峰塔重建·免费开放', '2011 列入世界遗产', 'G20·亚运会'],
+      imageHint: '🚇',
+      geoOverlay: {
+        features: [SU_CAUSEWAY, BAI_CAUSEWAY, YANGGONG_CAUSEWAY, METRO_LINE1, ...MODERN_ROADS],
+        markers: [
+          { id: 'leifeng-new', name: '雷峰塔(2002重建)', lng: 120.1489, lat: 30.2313, kind: 'landmark' },
+          { id: 'hubin-walk', name: '湖滨步行街', lng: 120.157, lat: 30.252, kind: 'building' },
+          { id: 'baochu-now', name: '保俶塔', lng: 120.1456, lat: 30.2593, kind: 'landmark' },
+          { id: 'longxiang', name: '龙翔桥地铁站', lng: 120.161, lat: 30.257, kind: 'transit' },
+          { id: 'maojiabu', name: '茅家埠(西湖西进)', lng: 120.121, lat: 30.24, kind: 'water' },
         ],
       },
     },
   },
   story: {
     nameOrigin:
-      '西湖古称「武林水」「钱塘湖」，因位于杭州城西而俗称西湖。它原是与钱塘江相通的海湾，泥沙淤积后形成潟湖，再经历代疏浚，方成今日城中之湖。',
+      '西湖古称「武林水」「钱塘湖」，因位于杭州城西而俗称西湖。它原是与钱塘江相通的海湾，东汉华信筑塘后泥沙封口、淡化成潟湖，再经白居易、苏轼、杨孟瑛历代疏浚，方成今日城中之湖。「杭州」之名则始于隋开皇九年（589）。',
     changes:
-      '从唐代白居易疏浚、北宋苏轼筑堤，到南宋成为帝都临安的御苑，再到明清「西湖十景」定型，直至当代列入世界文化遗产并免费开放——西湖始终是杭州的灵魂。',
-    keyFigures: ['白居易（筑白堤）', '苏轼（筑苏堤）', '林逋（梅妻鹤子）', '岳飞（葬于栖霞岭）'],
+      '从秦汉的海湾潟湖，到隋代得名、唐代白居易筑堤，吴越国佛塔林立，北宋苏轼浚湖，南宋升格为都城临安，明代杨公堤问世，清帝题定十景，民国雷峰塔倒塌，直至当代免费开放、列入世界遗产——西湖两千年，就是一部城湖相生史。',
+    keyFigures: [
+      '白居易（822 年任刺史，筑堤蓄湖）',
+      '钱镠（吴越国王，筑捍海塘设撩湖兵）',
+      '苏轼（1090 年浚湖筑苏堤）',
+      '岳飞（1142 年遇害，葬栖霞岭）',
+      '杨孟瑛（1508 年浚湖筑杨公堤）',
+      '于谦（杭州人，归葬三台山）',
+    ],
     landmarkEvents: [
-      '唐·白居易疏浚西湖、修筑堤坝',
-      '北宋·苏轼任杭州知州，浚湖筑苏堤',
-      '南宋·定都临安，西湖成为皇家苑囿',
+      '前222·秦置钱唐县',
+      '589·置杭州，610·江南运河凿通',
+      '822·白居易任杭州刺史',
+      '977·钱俶建雷峰塔',
+      '1090·苏轼疏浚西湖筑苏堤',
+      '1138·南宋定都临安',
+      '1699·康熙题定西湖十景',
+      '1924·雷峰塔倒塌',
       '2011·西湖文化景观列入世界遗产',
     ],
     pastVsPresent:
-      '千年前你需乘乌篷船、付船资才能游湖，雷峰塔下香客摩肩；今天的你刷地铁卡即可抵达湖滨，沿绿道骑行环湖，夜里还能看灯光秀——但脚下的苏堤，仍是九百年前苏轼留下的那条。',
+      '两千年前你脚下还是钱塘江的海湾，宝石山是伸入水中的岬角；一千年前苏轼的疏浚船正在湖上捞葑泥；八百年前这里是南宋都城，御街上「四孟驾出」；今天你刷地铁卡到龙翔桥，沿绿道环湖骑行——但断桥还是唐代的名字，苏堤还是苏轼留下的那条。',
   },
   nearby: [
-    { id: 'n-leifeng', name: '雷峰塔', distanceM: 1200, era: 'ancient', blurb: '《白蛇传》中镇压白娘子之塔，1924 年倒塌，2002 年重建。', emoji: '🗼' },
-    { id: 'n-lingyin', name: '灵隐寺', distanceM: 3400, era: 'ancient', blurb: '东晋始建的千年古刹，飞来峰造像静默千年。', emoji: '🛕' },
-    { id: 'n-longjing', name: '龙井村', distanceM: 4200, era: '1900', blurb: '龙井茶原产地，乾隆曾在此封「十八棵御茶」。', emoji: '🍵' },
-    { id: 'n-yuewang', name: '岳王庙', distanceM: 2100, era: 'ancient', blurb: '南宋名将岳飞长眠之地，「精忠报国」于此。', emoji: '⚔️' },
+    { id: 'n-leifeng', name: '雷峰塔', distanceM: 1200, era: 'wuyue', blurb: '977 年钱俶建，1924 年倒塌，2002 年重建——《白蛇传》镇塔传说所在。', emoji: '🗼' },
+    { id: 'n-lingyin', name: '灵隐寺', distanceM: 3400, era: 'qin-six', blurb: '东晋 326 年慧理始建的千年古刹，飞来峰造像静默千年。', emoji: '🛕' },
+    { id: 'n-longjing', name: '龙井村', distanceM: 4200, era: 'qing', blurb: '龙井茶原产地，乾隆曾在此封「十八棵御茶」。', emoji: '🍵' },
+    { id: 'n-yuewang', name: '岳王庙', distanceM: 2100, era: 'south-song', blurb: '南宋名将岳飞长眠之地，墓前铁跪像四具。', emoji: '⚔️' },
   ],
 }
 
