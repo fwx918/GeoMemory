@@ -1,5 +1,22 @@
 import type { GeoFeature, Location } from '../types'
 import { HANGZHOU_POIS } from './hangzhou/pois'
+import {
+  QIN_SIX_CHAPTERS,
+  SUI_CHAPTERS,
+  TANG_CHAPTERS,
+  WUYUE_CHAPTERS,
+} from './hangzhou/chapters-early'
+import {
+  QING_CHAPTERS,
+  REPUBLIC_CHAPTERS,
+  PRC_CHAPTERS,
+  NOW_CHAPTERS,
+} from './hangzhou/chapters-late'
+import {
+  NORTH_SONG_CHAPTERS,
+  SOUTH_SONG_CHAPTERS,
+  YUAN_MING_CHAPTERS,
+} from './hangzhou/chapters-mid'
 import { WEST_LAKE_RINGS } from './generated/westLake'
 import { QIANTANG_RIVER } from './generated/qiantangRiver'
 
@@ -233,6 +250,7 @@ export const HANGZHOU: Location = {
         '秦置钱唐县时还没有西湖——只有一个与钱塘江相通的浅海湾，宝石山与吴山是伸入水中的两个岬角。东汉地方官华信筑防海大塘，泥沙渐渐封住湾口，海湾淡化成潟湖，早期称「武林水」「钱塘湖」。东晋咸和元年（326），印度僧人慧理惊叹北高峰南麓「不知何以飞来」，建灵隐寺，飞来峰由此得名。',
       highlights: ['前222 秦置钱唐县', '东汉华信筑塘，海湾成湖', '326 慧理建灵隐寺'],
       imageHint: '🌊',
+      chapters: QIN_SIX_CHAPTERS,
       geoOverlay: {
         features: [ANCIENT_SHORELINE],
         poiRefs: ['baoshi-hill', 'wushan', 'lingyin', 'feilai', 'xiling'],
@@ -245,6 +263,7 @@ export const HANGZHOU: Location = {
         '隋开皇九年（589）废钱唐郡置「杭州」，这个名字第一次出现在版图上。开皇十一年杨素把州治迁到凤凰山麓，依山筑起周三十六里的州城——此后近千年，凤凰山下始终是杭州的政治中心。大业六年（610）江南运河凿通，京口至余杭八百余里，杭州从东南小城一跃成为水运枢纽。',
       highlights: ['589 「杭州」之名始于此', '591 杨素筑州城于凤凰山', '610 江南运河凿通'],
       imageHint: '🚣',
+      chapters: SUI_CHAPTERS,
       geoOverlay: {
         poiRefs: ['fenghuang-hill', 'liupu', 'grand-canal-end'],
       },
@@ -256,6 +275,7 @@ export const HANGZHOU: Location = {
         '唐代杭州户口逾十万，跻身东南名郡。贞元年间刺史李泌开六井，用暗渠把西湖淡水引入咸卤的城区，城市重心开始向湖边聚拢。长庆二年（822）白居易出任杭州刺史，修堤蓄水、规定「放水一寸可溉田十五顷」，写下「最爱湖东行不足，绿杨阴里白沙堤」——今天的白堤，就是杭州人对他的纪念。',
       highlights: ['约781 李泌开六井引湖水入城', '822 白居易任杭州刺史', '823-824 修堤浚湖'],
       imageHint: '🖌️',
+      chapters: TANG_CHAPTERS,
       geoOverlay: {
         features: [BAI_CAUSEWAY],
         poiRefs: ['baidi', 'duanqiao', 'xiangguo-well', 'gushan'],
@@ -268,6 +288,7 @@ export const HANGZHOU: Location = {
         '唐亡后钱镠建吴越国，定都杭州，乱世中独享七十年太平。910 年他「石囤木桩」筑捍海塘压住江潮，民间尊称「海龙王」；又设千人「撩湖兵」专职浚湖。吴越崇佛，杭州号称「东南佛国」：六和塔镇江潮、保俶塔立宝石山巅，977 年钱俶建雷峰塔——次年他纳土归宋，杭州免于战火。',
       highlights: ['907 钱镠建吴越国', '910 筑捍海石塘', '977 建雷峰塔·978 纳土归宋'],
       imageHint: '🛕',
+      chapters: WUYUE_CHAPTERS,
       geoOverlay: {
         features: [SEAWALL, BAI_CAUSEWAY],
         poiRefs: ['leifeng', 'baochu', 'liuhe', 'jingci', 'seawall'],
@@ -280,6 +301,7 @@ export const HANGZHOU: Location = {
         '元祐四年（1089）苏轼知杭州，此时西湖「葑合之地」近半。他上《乞开杭州西湖状》，断言「杭州之有西湖，如人之有眉目」，募工二十万疏浚全湖，把挖出的葑泥纵贯南北筑成长堤，上建六桥、遍植芙蓉杨柳——杭人呼为「苏公堤」。他还在湖中立三座石塔禁种菱芡，即三潭印月的前身。',
       highlights: ['1071 苏轼任杭州通判', '1089 知杭州', '1090 疏浚西湖·筑苏堤'],
       imageHint: '📜',
+      chapters: NORTH_SONG_CHAPTERS,
       geoOverlay: {
         features: [SU_CAUSEWAY, BAI_CAUSEWAY],
         poiRefs: ['sudi', 'santan', 'longjing', 'gushan'],
@@ -292,6 +314,7 @@ export const HANGZHOU: Location = {
         '靖康之变后宋室南渡，1138 年定杭州为「行在所」，升临安府。皇城圈占凤凰山东麓，一条御街从和宁门直通城北——就是今天的中山路。临安人口号称过百万，《梦粱录》记夜市至三更不绝。1142 年岳飞以「莫须有」罪名遇害，后迁葬栖霞岭。画院题出「平湖秋月」「断桥残雪」，西湖十景由此定型。',
       highlights: ['1138 定都临安', '1142 岳飞遇害', '西湖十景之名定型', '1276 元军入临安'],
       imageHint: '🏯',
+      chapters: SOUTH_SONG_CHAPTERS,
       geoOverlay: {
         features: [LINAN_WALL, IMPERIAL_CITY, IMPERIAL_STREET, SU_CAUSEWAY, BAI_CAUSEWAY],
         poiRefs: ['imperial-city', 'yujie', 'yuefei', 'jingci', 'leifeng', 'duanqiao', 'lingyin', 'fenghuang-hill'],
@@ -304,6 +327,7 @@ export const HANGZHOU: Location = {
         '元代西湖疏于治理，苏堤以西渐成桑田，「西湖遂废」；飞来峰上却在此期开凿出大批藏式造像。转机在明正德三年（1508）：知州杨孟瑛力排众议，役工数百万疏浚全湖，挖出的泥筑成西侧长堤——杨公堤，与白苏二堤并称「西湖三堤」。杭州人于谦少年在吴山读书写下《石灰吟》，冤死后归葬三台山，西湖多了一座忠魂祠。',
       highlights: ['元代 飞来峰藏式造像', '1508 杨孟瑛浚湖筑杨公堤', '于谦归葬三台山'],
       imageHint: '🌾',
+      chapters: YUAN_MING_CHAPTERS,
       geoOverlay: {
         features: [SILTED_WEST, MING_QING_WALL, SU_CAUSEWAY, BAI_CAUSEWAY, YANGGONG_CAUSEWAY],
         poiRefs: ['yanggong', 'yuqian', 'huxinting', 'feilai', 'santan', 'wushan', 'changqiao'],
@@ -316,6 +340,7 @@ export const HANGZHOU: Location = {
         '康熙南巡屡驻杭州，1699 年为西湖十景逐一题名立碑，「曲院风荷」「花港观鱼」的今名即出康熙手笔；乾隆六下江南次次入住孤山行宫，又为十景各赋诗刻于碑阴。1782 年《四库全书》成，杭州建文澜阁贮藏全书，江南士子可就近抄阅。西湖至此完成从州郡湖泊到「天下景」的加冕。',
       highlights: ['1699 康熙题定西湖十景', '乾隆六下江南驻孤山行宫', '1782 建文澜阁贮《四库全书》'],
       imageHint: '🖋️',
+      chapters: QING_CHAPTERS,
       geoOverlay: {
         features: [MING_QING_WALL, SU_CAUSEWAY, BAI_CAUSEWAY, YANGGONG_CAUSEWAY],
         poiRefs: ['xinggong', 'wenlan', 'quyuan', 'huagang', 'longjing', 'duanqiao', 'leifeng', 'gushan'],
@@ -328,6 +353,7 @@ export const HANGZHOU: Location = {
         '1911 年杭州光复后拆除旗营城墙——湖与城之间最后一道墙没了，旗营旧址辟为「湖滨新市场」，杭州第一次真正面湖而居。1924 年 9 月 25 日，年久失修的雷峰塔轰然倒塌，鲁迅连写《论雷峰塔的倒掉》；塔砖中还发现了吴越刻本佛经。1929 年西湖博览会观众逾千万人次。秋瑾归葬西泠桥畔，李叔同在虎跑剃度为弘一。',
       highlights: ['1912-1914 拆旗营辟湖滨', '1924.9.25 雷峰塔倒塌', '1929 西湖博览会'],
       imageHint: '📰',
+      chapters: REPUBLIC_CHAPTERS,
       geoOverlay: {
         features: [HUHANG_RAIL, SU_CAUSEWAY, BAI_CAUSEWAY, YANGGONG_CAUSEWAY],
         poiRefs: ['hubin', 'leifeng', 'qiujin', 'chengzhan', 'hupao', 'gushan'],
@@ -340,6 +366,7 @@ export const HANGZHOU: Location = {
         '1949 年时西湖平均水深仅半米多。1952-1958 年实施建国后首次大规模机械疏浚，挖出淤泥七百余万立方米，水深增至 1.8 米左右。园林学家孙筱祥主持把花港观鱼从一亭一池扩为二十余公顷大公园，环湖公园带成形。1985 年评出「新西湖十景」，1988 年太子湾公园建成，樱花与郁金香成为杭州春天的固定节目。',
       highlights: ['1952-1958 西湖大疏浚', '花港观鱼扩建', '1985 新西湖十景', '1988 太子湾建成'],
       imageHint: '🌷',
+      chapters: PRC_CHAPTERS,
       geoOverlay: {
         features: [SU_CAUSEWAY, BAI_CAUSEWAY, YANGGONG_CAUSEWAY, ...MODERN_ROADS.slice(0, 4)],
         poiRefs: ['huagang', 'taiziwan', 'yanggong', 'leifeng'],
@@ -352,6 +379,7 @@ export const HANGZHOU: Location = {
         '2002 年雷峰塔重建落成，「雷峰夕照」缺席 78 年后归位；同年杭州启动「还湖于民」，环湖公园拆墙、免票，「免费西湖」反而带动全城旅游，被称为「西湖模式」。2011 年 6 月 24 日，「杭州西湖文化景观」列入《世界遗产名录》。G20 与亚运会之后，「三面云山一面城」的格局一再成为世界镜头里的杭州。',
       highlights: ['2002 雷峰塔重建·免费开放', '2011 列入世界遗产', 'G20·亚运会'],
       imageHint: '🚇',
+      chapters: NOW_CHAPTERS,
       geoOverlay: {
         features: [SU_CAUSEWAY, BAI_CAUSEWAY, YANGGONG_CAUSEWAY, METRO_LINE1, ...MODERN_ROADS],
         poiRefs: ['leifeng', 'hubin', 'baochu', 'longxiang', 'maojiabu', 'sudi', 'baidi'],
