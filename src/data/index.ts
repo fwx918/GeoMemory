@@ -1,4 +1,4 @@
-import type { EraDef, EraKey, EraRecord, Location } from '../types'
+import type { EraDef, EraKey, EraRecord, GeoMarker, Location, Poi } from '../types'
 import { LOCATIONS } from './locations'
 import { LEGACY_ERA_BY_KEY, LEGACY_ERA_DEFS } from './eras'
 
@@ -101,4 +101,29 @@ export function getClosestEra(loc: Location, era: EraKey): EraKey | undefined {
 export function getRecord(loc: Location, era: EraKey): EraRecord | undefined {
   const key = getClosestEra(loc, era)
   return key ? loc.records[key] : undefined
+}
+
+// ---------------------------------------------------------------- POI
+
+/** 地点的 POI 查找表（id → Poi） */
+export function getPoiMap(loc: Location): Record<string, Poi> {
+  return Object.fromEntries((loc.pois ?? []).map((p) => [p.id, p]))
+}
+
+/**
+ * 解析某时代要在地图上显示的地标：overlay.markers 直接给出的，
+ * 加上 poiRefs 从共享 POI 表引用的（名称按该时代的 eraStates 取）。
+ */
+export function resolveEraMarkers(loc: Location, era: EraKey): GeoMarker[] {
+  const key = getClosestEra(loc, era)
+  const overlay = key ? loc.records[key]?.geoOverlay : undefined
+  if (!overlay) return []
+  const poiMap = getPoiMap(loc)
+  const fromRefs: GeoMarker[] = (overlay.poiRefs ?? []).flatMap((id) => {
+    const p = poiMap[id]
+    if (!p) return []
+    const state = key ? p.eraStates?.[key] : undefined
+    return [{ id: p.id, name: state?.name ?? p.name, lng: p.lng, lat: p.lat, kind: p.kind }]
+  })
+  return [...fromRefs, ...(overlay.markers ?? [])]
 }

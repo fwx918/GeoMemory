@@ -58,6 +58,8 @@ export interface EraRecord {
   imageHint?: string
   /** 真实地理地图的该时代叠加层 */
   geoOverlay?: GeoEraOverlay
+  /** 章节式正文（时光卷轴）；缺省时回退到 summary 卡片 */
+  chapters?: Chapter[]
 }
 
 /** 📖 此地从前 */
@@ -67,6 +69,70 @@ export interface PlaceStory {
   keyFigures: string[]
   landmarkEvents: string[]
   pastVsPresent: string
+}
+
+// --------------------------------------------------------------------------
+// 章节式故事线（时光卷轴）：时代 → 章节 → 段落，段落可联动地图 POI
+// --------------------------------------------------------------------------
+
+/** 史料出处 */
+export interface SourceRef {
+  /** 书名/文献名，渲染时自动加书名号（editorial 除外） */
+  title: string
+  /** 卷次/篇目等定位信息 */
+  locator?: string
+  /** classic=古籍 / modern=近现代研究 / editorial=编者说明 */
+  kind?: 'classic' | 'modern' | 'editorial'
+}
+
+/** 段落性质：史实 / 传说 / 存疑 */
+export type ParagraphKind = 'fact' | 'legend' | 'disputed'
+
+export interface Paragraph {
+  id: string
+  /** 正文 120-200 字 */
+  text: string
+  kind?: ParagraphKind
+  /** 滚动至此段时在地图上高亮的 POI id */
+  poiRefs?: string[]
+  /** 考据眉批（"考：……"） */
+  note?: string
+  sources?: SourceRef[]
+}
+
+export interface Chapter {
+  id: string
+  title: string
+  /** 真实年份区间，如 [1089, 1090]；单点事件用同值 */
+  yearRange?: [number, number]
+  /** 年份不确切时的说明，如 "约" */
+  circa?: boolean
+  /** history=史实层 / legend=传说层（可一键隐藏） */
+  layer?: 'history' | 'legend'
+  paragraphs: Paragraph[]
+  sources?: SourceRef[]
+}
+
+/** POI 在某个时代的形态（名字/故事随时代变化） */
+export interface PoiEraState {
+  /** 该时代的称呼，如 吴越称"皇妃塔" */
+  name?: string
+  /** ≤120 字缩略故事 */
+  story: string
+  /** 回链到章节 id */
+  chapterRef?: string
+  /** 传说角标 */
+  legend?: boolean
+}
+
+/** 带时代状态的地标（GeoMarker 的超集） */
+export interface Poi extends GeoMarker {
+  /** 1=主地标（始终显示标签）2=次级 3=细节 */
+  priority?: 1 | 2 | 3
+  /** 各时代的名称与故事 */
+  eraStates?: Record<string, PoiEraState>
+  /** 坐标未经核对 */
+  coordUnverified?: boolean
 }
 
 /** 🚶 身边故事 */
@@ -139,12 +205,18 @@ export interface GeoBase {
   boundary?: LngLat[]
   /** 各时代共有的基础要素（如现今河流、湖泊、山体） */
   base?: GeoFeature[]
+  /** 放大档 bbox（如杭州湖区级）；存在时地图右上角出现缩放切换 */
+  zoomBbox?: [number, number, number, number]
+  /** 放大档的名称，如 "湖区" */
+  zoomLabel?: string
 }
 
 /** 某时代叠加在真实底图上的要素与地标 */
 export interface GeoEraOverlay {
   features?: GeoFeature[]
   markers?: GeoMarker[]
+  /** 引用共享 POI 表中的 id（与 markers 二选一或并用） */
+  poiRefs?: string[]
 }
 
 export interface Location {
@@ -170,6 +242,10 @@ export interface Location {
   nearby: NearbySpot[]
   /** 真实地理底图（边界 + 水系），供 GeoMap 渲染 */
   geo: GeoBase
+  /** 共享 POI 表（含跨时代状态），由 geoOverlay.poiRefs 引用 */
+  pois?: Poi[]
+  /** 古今对照页的默认对比档 [过去, 现在]；缺省取最古 vs 最今 */
+  featuredCompare?: [EraKey, EraKey]
 }
 
 /** 🤖 AI 时空导游：关键词匹配规则 */

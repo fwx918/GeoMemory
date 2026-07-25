@@ -1,4 +1,5 @@
 import type { GeoFeature, Location } from '../types'
+import { HANGZHOU_POIS } from './hangzhou/pois'
 import { WEST_LAKE_RINGS } from './generated/westLake'
 import { QIANTANG_RIVER } from './generated/qiantangRiver'
 
@@ -218,7 +219,12 @@ export const HANGZHOU: Location = {
   geo: {
     bbox: BBOX,
     base: [WEST_LAKE, QIANTANG, GRAND_CANAL, ...HILLS],
+    // 湖区级放大档：西湖全湖 + 三岛 + 两堤 + 吴山北麓
+    zoomBbox: [120.105, 30.2, 120.178, 30.272],
+    zoomLabel: '湖区',
   },
+  pois: HANGZHOU_POIS,
+  featuredCompare: ['south-song', 'now'],
   records: {
     'qin-six': {
       era: 'qin-six',
@@ -229,12 +235,7 @@ export const HANGZHOU: Location = {
       imageHint: '🌊',
       geoOverlay: {
         features: [ANCIENT_SHORELINE],
-        markers: [
-          { id: 'baoshi-cape', name: '宝石山(古岬角)', lng: 120.145, lat: 30.2585, kind: 'landmark' },
-          { id: 'wushan-cape', name: '吴山(古岬角)', lng: 120.1637, lat: 30.2408, kind: 'landmark' },
-          { id: 'lingyin', name: '灵隐寺', lng: 120.1009, lat: 30.2419, kind: 'temple' },
-          { id: 'feilai', name: '飞来峰', lng: 120.1024, lat: 30.2408, kind: 'temple' },
-        ],
+        poiRefs: ['baoshi-hill', 'wushan', 'lingyin', 'feilai', 'xiling'],
       },
     },
     sui: {
@@ -245,11 +246,7 @@ export const HANGZHOU: Location = {
       highlights: ['589 「杭州」之名始于此', '591 杨素筑州城于凤凰山', '610 江南运河凿通'],
       imageHint: '🚣',
       geoOverlay: {
-        markers: [
-          { id: 'fenghuang-seat', name: '隋州治(凤凰山)', lng: 120.161, lat: 30.226, kind: 'landmark' },
-          { id: 'liupu', name: '柳浦(古渡)', lng: 120.1668, lat: 30.2205, kind: 'transit' },
-          { id: 'canal-end', name: '运河南端', lng: 120.152, lat: 30.285, kind: 'water' },
-        ],
+        poiRefs: ['fenghuang-hill', 'liupu', 'grand-canal-end'],
       },
     },
     tang: {
@@ -261,12 +258,7 @@ export const HANGZHOU: Location = {
       imageHint: '🖌️',
       geoOverlay: {
         features: [BAI_CAUSEWAY],
-        markers: [
-          { id: 'bai-di', name: '白沙堤', lng: 120.148, lat: 30.257, kind: 'landmark' },
-          { id: 'duanqiao-tang', name: '断桥', lng: 120.1517, lat: 30.2587, kind: 'landmark' },
-          { id: 'xiangguo-well', name: '相国井(六井)', lng: 120.162, lat: 30.2489, kind: 'water' },
-          { id: 'gushan-tang', name: '孤山', lng: 120.142, lat: 30.254, kind: 'landmark' },
-        ],
+        poiRefs: ['baidi', 'duanqiao', 'xiangguo-well', 'gushan'],
       },
     },
     wuyue: {
@@ -278,12 +270,7 @@ export const HANGZHOU: Location = {
       imageHint: '🛕',
       geoOverlay: {
         features: [SEAWALL, BAI_CAUSEWAY],
-        markers: [
-          { id: 'leifeng-wuyue', name: '雷峰塔(977建)', lng: 120.1489, lat: 30.2313, kind: 'landmark' },
-          { id: 'baochu-wuyue', name: '保俶塔', lng: 120.1456, lat: 30.2593, kind: 'landmark' },
-          { id: 'liuhe', name: '六和塔(970建)', lng: 120.1319, lat: 30.1997, kind: 'landmark' },
-          { id: 'jingci', name: '净慈寺(954建)', lng: 120.1476, lat: 30.23, kind: 'temple' },
-        ],
+        poiRefs: ['leifeng', 'baochu', 'liuhe', 'jingci', 'seawall'],
       },
     },
     'north-song': {
@@ -295,11 +282,7 @@ export const HANGZHOU: Location = {
       imageHint: '📜',
       geoOverlay: {
         features: [SU_CAUSEWAY, BAI_CAUSEWAY],
-        markers: [
-          { id: 'su-di', name: '苏堤(1090筑)', lng: 120.133, lat: 30.241, kind: 'landmark' },
-          { id: 'santan-song', name: '三潭石塔', lng: 120.1435, lat: 30.2382, kind: 'water' },
-          { id: 'longjing-song', name: '龙井', lng: 120.116, lat: 30.221, kind: 'village' },
-        ],
+        poiRefs: ['sudi', 'santan', 'longjing', 'gushan'],
       },
     },
     'south-song': {
@@ -311,12 +294,7 @@ export const HANGZHOU: Location = {
       imageHint: '🏯',
       geoOverlay: {
         features: [LINAN_WALL, IMPERIAL_CITY, IMPERIAL_STREET, SU_CAUSEWAY, BAI_CAUSEWAY],
-        markers: [
-          { id: 'imperial', name: '南宋皇城', lng: 120.163, lat: 30.223, kind: 'landmark' },
-          { id: 'yujie', name: '御街(今中山路)', lng: 120.169, lat: 30.244, kind: 'transit' },
-          { id: 'yuefei', name: '岳飞墓(栖霞岭)', lng: 120.1387, lat: 30.2559, kind: 'landmark' },
-          { id: 'jingci-jigong', name: '净慈寺(济公圆寂)', lng: 120.1476, lat: 30.23, kind: 'temple' },
-        ],
+        poiRefs: ['imperial-city', 'yujie', 'yuefei', 'jingci', 'leifeng', 'duanqiao', 'lingyin', 'fenghuang-hill'],
       },
     },
     'yuan-ming': {
@@ -328,11 +306,7 @@ export const HANGZHOU: Location = {
       imageHint: '🌾',
       geoOverlay: {
         features: [SILTED_WEST, MING_QING_WALL, SU_CAUSEWAY, BAI_CAUSEWAY, YANGGONG_CAUSEWAY],
-        markers: [
-          { id: 'yanggong', name: '杨公堤(1508筑)', lng: 120.125, lat: 30.24, kind: 'landmark' },
-          { id: 'yuqian', name: '于谦墓(三台山)', lng: 120.1265, lat: 30.229, kind: 'landmark' },
-          { id: 'huxin', name: '湖心亭', lng: 120.1447, lat: 30.2455, kind: 'landmark' },
-        ],
+        poiRefs: ['yanggong', 'yuqian', 'huxinting', 'feilai', 'santan', 'wushan', 'changqiao'],
       },
     },
     qing: {
@@ -344,13 +318,7 @@ export const HANGZHOU: Location = {
       imageHint: '🖋️',
       geoOverlay: {
         features: [MING_QING_WALL, SU_CAUSEWAY, BAI_CAUSEWAY, YANGGONG_CAUSEWAY],
-        markers: [
-          { id: 'xinggong', name: '清行宫(孤山)', lng: 120.142, lat: 30.2545, kind: 'landmark' },
-          { id: 'wenlan', name: '文澜阁', lng: 120.1428, lat: 30.2537, kind: 'building' },
-          { id: 'quyuan', name: '曲院风荷', lng: 120.131, lat: 30.2495, kind: 'water' },
-          { id: 'huagang', name: '花港观鱼', lng: 120.1325, lat: 30.2325, kind: 'water' },
-          { id: 'longjing-qing', name: '龙井茶园', lng: 120.116, lat: 30.221, kind: 'village' },
-        ],
+        poiRefs: ['xinggong', 'wenlan', 'quyuan', 'huagang', 'longjing', 'duanqiao', 'leifeng', 'gushan'],
       },
     },
     republic: {
@@ -362,13 +330,7 @@ export const HANGZHOU: Location = {
       imageHint: '📰',
       geoOverlay: {
         features: [HUHANG_RAIL, SU_CAUSEWAY, BAI_CAUSEWAY, YANGGONG_CAUSEWAY],
-        markers: [
-          { id: 'hubin-market', name: '湖滨新市场', lng: 120.157, lat: 30.253, kind: 'building' },
-          { id: 'leifeng-fallen', name: '雷峰塔遗址(1924塌)', lng: 120.1489, lat: 30.2313, kind: 'landmark' },
-          { id: 'qiujin', name: '秋瑾墓(西泠桥)', lng: 120.1398, lat: 30.2565, kind: 'landmark' },
-          { id: 'chengzhan', name: '城站(沪杭铁路)', lng: 120.18, lat: 30.245, kind: 'transit' },
-          { id: 'hupao', name: '虎跑(弘一出家)', lng: 120.1273, lat: 30.2094, kind: 'temple' },
-        ],
+        poiRefs: ['hubin', 'leifeng', 'qiujin', 'chengzhan', 'hupao', 'gushan'],
       },
     },
     prc: {
@@ -380,11 +342,7 @@ export const HANGZHOU: Location = {
       imageHint: '🌷',
       geoOverlay: {
         features: [SU_CAUSEWAY, BAI_CAUSEWAY, YANGGONG_CAUSEWAY, ...MODERN_ROADS.slice(0, 4)],
-        markers: [
-          { id: 'huagang-park', name: '花港观鱼(扩建)', lng: 120.1325, lat: 30.2325, kind: 'water' },
-          { id: 'taiziwan', name: '太子湾公园', lng: 120.1425, lat: 30.227, kind: 'water' },
-          { id: 'botanic', name: '杭州植物园', lng: 120.123, lat: 30.253, kind: 'village' },
-        ],
+        poiRefs: ['huagang', 'taiziwan', 'yanggong', 'leifeng'],
       },
     },
     now: {
@@ -396,13 +354,7 @@ export const HANGZHOU: Location = {
       imageHint: '🚇',
       geoOverlay: {
         features: [SU_CAUSEWAY, BAI_CAUSEWAY, YANGGONG_CAUSEWAY, METRO_LINE1, ...MODERN_ROADS],
-        markers: [
-          { id: 'leifeng-new', name: '雷峰塔(2002重建)', lng: 120.1489, lat: 30.2313, kind: 'landmark' },
-          { id: 'hubin-walk', name: '湖滨步行街', lng: 120.157, lat: 30.252, kind: 'building' },
-          { id: 'baochu-now', name: '保俶塔', lng: 120.1456, lat: 30.2593, kind: 'landmark' },
-          { id: 'longxiang', name: '龙翔桥地铁站', lng: 120.161, lat: 30.257, kind: 'transit' },
-          { id: 'maojiabu', name: '茅家埠(西湖西进)', lng: 120.121, lat: 30.24, kind: 'water' },
-        ],
+        poiRefs: ['leifeng', 'hubin', 'baochu', 'longxiang', 'maojiabu', 'sudi', 'baidi'],
       },
     },
   },

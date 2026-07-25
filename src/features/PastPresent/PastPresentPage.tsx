@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
-import type { EraRecord } from '../../types'
+import type { EraKey } from '../../types'
 import { useApp } from '../../context/AppContext'
-import { getRecord, resolveEraLabel } from '../../data'
+import { getRecord, resolveEraLabel, resolveEraMarkers } from '../../data'
 import LocationPicker from '../../components/common/LocationPicker'
 import OverlaySlider from '../../components/overlay/OverlaySlider'
 import GeoMap from '../../components/map/GeoMap'
@@ -10,22 +10,31 @@ import StoryCard from '../../components/common/StoryCard'
 export default function PastPresentPage() {
   const { activeLocation, availableEras } = useApp()
 
-  // 最今 vs 最古
-  const presentEra = availableEras[0]
-  const pastEra = availableEras[availableEras.length - 1]
+  // 默认对比档：地点指定优先（杭州为南宋 vs 当代），否则最古 vs 最今
+  const [pastEra, presentEra] = useMemo<[EraKey, EraKey]>(() => {
+    const featured = activeLocation.featuredCompare
+    if (featured && availableEras.includes(featured[0]) && availableEras.includes(featured[1])) {
+      return featured
+    }
+    return [availableEras[availableEras.length - 1], availableEras[0]]
+  }, [activeLocation, availableEras])
 
   const present = useMemo(() => getRecord(activeLocation, presentEra), [activeLocation, presentEra])
   const past = useMemo(() => getRecord(activeLocation, pastEra), [activeLocation, pastEra])
 
-  const renderMap = (record: EraRecord | undefined, minimal: boolean) =>
-    record ? (
+  const renderMap = (era: EraKey, minimal: boolean) => {
+    const record = getRecord(activeLocation, era)
+    if (!record) return null
+    const markers = resolveEraMarkers(activeLocation, era)
+    return (
       <GeoMap
         geo={activeLocation.geo}
-        overlay={record.geoOverlay}
+        overlay={record.geoOverlay ? { ...record.geoOverlay, markers } : undefined}
         showLabels={!minimal}
         minimal={minimal}
       />
-    ) : null
+    )
+  }
 
   return (
     <div className="mx-auto max-w-6xl space-y-4 p-4 lg:space-y-6 lg:p-8">
@@ -41,8 +50,8 @@ export default function PastPresentPage() {
 
           {past && present && (
             <OverlaySlider
-              past={renderMap(past, false)}
-              present={renderMap(present, false)}
+              past={renderMap(pastEra, false)}
+              present={renderMap(presentEra, false)}
               pastLabel={resolveEraLabel(activeLocation, pastEra).label}
               presentLabel={resolveEraLabel(activeLocation, presentEra).label}
             />

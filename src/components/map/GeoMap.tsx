@@ -1,4 +1,4 @@
-import { memo, useMemo } from 'react'
+import { memo, useMemo, useState } from 'react'
 import type { GeoBase, GeoEraOverlay, GeoFeature, GeoMarker } from '../../types'
 import { createProjector, toPath } from './geo'
 
@@ -20,6 +20,9 @@ interface Props {
   minimal?: boolean
   /** 变化时叠加层淡入（用于时代切换的过渡） */
   morphKey?: string
+  /** 高亮的地标 id（卷轴滚动联动）；非空时其余地标淡出 */
+  focusedIds?: string[]
+  onMarkerClick?: (id: string) => void
 }
 
 interface KindStyle {
@@ -109,34 +112,53 @@ function layoutLabels(ms: GeoMarker[], proj: Projector): LabelPlacement[] {
   })
 }
 
+/** 地标三态：focused=卷轴当前段引用 / dimmed=有其他焦点时淡出 / normal */
+type MarkerState = 'normal' | 'focused' | 'dimmed'
+
 const Marker = memo(function Marker({
   m,
   proj,
   showLabel,
   labelPos = 'below',
+  state = 'normal',
+  onClick,
 }: {
   m: GeoMarker
   proj: Projector
   showLabel: boolean
   labelPos?: LabelPlacement
+  state?: MarkerState
+  onClick?: (id: string) => void
 }) {
   const [x, y] = proj.project(m.lng, m.lat)
   const emoji = KIND_EMOJI[m.kind ?? 'landmark']
+  const focused = state === 'focused'
   return (
-    <g transform={`translate(${x} ${y})`}>
+    <g
+      transform={`translate(${x} ${y})`}
+      className={`transition-opacity duration-500 ${onClick ? 'cursor-pointer' : ''}`}
+      opacity={state === 'dimmed' ? 0.35 : 1}
+      onClick={onClick ? () => onClick(m.id) : undefined}
+    >
       <title>{m.name}</title>
-      <circle r="2.4" className="fill-seal/30" />
-      <circle r="0.9" className="fill-seal" />
+      {focused && <circle r="4.6" className="fill-seal/25 animate-ping-slow" />}
+      <circle r={focused ? 3 : 2.4} className={focused ? 'fill-seal/45' : 'fill-seal/30'} />
+      <circle r={focused ? 1.2 : 0.9} className="fill-seal" />
       <text x="0" y="-3.2" textAnchor="middle" style={{ fontSize: '3.2px' }} className="select-none">
         {emoji}
       </text>
-      {showLabel && labelPos && (
+      {showLabel && (labelPos || focused) && (
         <text
           x="0"
-          y={labelPos === 'below' ? 5.2 : -5.8}
+          y={labelPos === 'above' ? -5.8 : 5.2}
           textAnchor="middle"
-          style={{ fontSize: '2.7px', paintOrder: 'stroke', stroke: '#15110d', strokeWidth: 0.5 }}
-          className="select-none fill-parchment-50 font-medium"
+          style={{
+            fontSize: focused ? '3px' : '2.7px',
+            paintOrder: 'stroke',
+            stroke: '#15110d',
+            strokeWidth: 0.6,
+          }}
+          className={`select-none font-medium ${focused ? 'fill-seal' : 'fill-parchment-50'}`}
         >
           {m.name}
         </text>
@@ -157,8 +179,13 @@ export default function GeoMap({
   className = '',
   minimal = false,
   morphKey,
+  focusedIds,
+  onMarkerClick,
 }: Props) {
-  const proj = useMemo(() => createProjector(geo.bbox), [geo.bbox])
+  const hasFocus = Boolean(focusedIds && focusedIds.length > 0)
+  const [zoomed, setZoomed] = useState(false)
+  const bbox = zoomed && geo.zoomBbox ? geo.zoomBbox : geo.bbox
+  const proj = useMemo(() => createProjector(bbox), [bbox])
   const boundaryPath = useMemo(
     () => (geo.boundary ? toPath(geo.boundary, proj, true) : undefined),
     [geo.boundary, proj],
@@ -240,6 +267,10 @@ export default function GeoMap({
               proj={proj}
               showLabel={showLabels}
               labelPos={labelPlacements[i]}
+              state={
+                !hasFocus ? 'normal' : focusedIds?.includes(m.id) ? 'focused' : 'dimmed'
+              }
+              onClick={onMarkerClick}
             />
           ))}
       </g>
@@ -249,6 +280,27 @@ export default function GeoMap({
         <text x="98" y="98" textAnchor="end" style={{ fontSize: '2.4px' }} className="fill-parchment-200/50 select-none">
           ◌ 虚线要素为文献复原示意
         </text>
+      )}
+
+      {/* 缩放切换（地点提供 zoomBbox 时出现） */}
+      {geo.zoomBbox && !minimal && (
+        <g
+          className="cursor-pointer"
+          onClick={() => setZoomed((v) => !v)}
+          role="button"
+          aria-label={zoomed ? '缩小到城区' : `放大到${geo.zoomLabel ?? '中心区'}`}
+        >
+          <rect x="76" y="2" width="22" height="6" rx="3" className="fill-ink/85 stroke-white/15" strokeWidth="0.3" />
+          <text
+            x="87"
+            y="6.1"
+            textAnchor="middle"
+            style={{ fontSize: '3px' }}
+            className="fill-parchment-100 select-none"
+          >
+            {zoomed ? '⊖ 看全城' : `⊕ 看${geo.zoomLabel ?? '中心'}`}
+          </text>
+        </g>
       )}
     </svg>
   )
