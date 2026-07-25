@@ -255,8 +255,14 @@ export interface AiQARule {
   answer: (loc: Location) => string
 }
 
+/** 导游回答附带的可点操作（回控地图 / 时间轴） */
+export type ChatAction =
+  | { kind: 'focusPoi'; label: string; poiId: string; era?: EraKey }
+  | { kind: 'gotoEra'; label: string; era: EraKey }
+
 export interface ChatMessage {
   id: string
   role: 'user' | 'guide'
   text: string
+  actions?: ChatAction[]
 }

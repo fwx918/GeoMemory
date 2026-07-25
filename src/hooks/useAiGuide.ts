@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { Location } from '../types'
+import type { ChatAction, EraKey, Location } from '../types'
 import {
   AI_QA_RULES,
   ERA_PHRASE_MAP,
@@ -7,6 +7,8 @@ import {
   getEraDef,
   getRecord,
 } from '../data'
+import { extractYear, searchStory, suggestChapters } from '../data/storyIndex'
+import { formatSource } from '../components/story/SourceBar'
 import { useApp } from '../context/AppContext'
 
 const GUIDE_PREFIX = '【时空导游】'
@@ -21,39 +23,87 @@ function detectEraYear(query: string): { year: number; label: string } | undefin
   return undefined
 }
 
-/** 纯函数式的「AI」回复引擎：先匹配意图规则，再回退到年代快照。 */
-export function composeAnswer(query: string, loc: Location): string {
+export interface GuideAnswer {
+  text: string
+  actions?: ChatAction[]
+}
+
+/**
+ * 「AI 时空导游」回复引擎，三层：
+ * ① 检索式——在章节段落里找原文作答（附来源行 + 操作 chip），这是主路径；
+ * ② 意图规则——地名由来/人物/事件/对比等结构化问题；
+ * ③ 年代快照 / 诚实兜底。
+ * 全程只搬运史料原文，不生成未经记载的内容。
+ */
+export function composeAnswer(query: string, loc: Location, currentEra?: EraKey): GuideAnswer {
   const q = query.trim().toLowerCase()
 
-  // 1) 先匹配意图关键词（地名由来 / 人物 / 事件 / 对比 / 生活）。
-  //    放在年代检测之前，避免「为什么叫唐人街」被朝代词劫持。
+  // ① 段落检索（有章节数据的地点）
+  const hits = searchStory(loc, query, { currentEra })
+  if (hits.length > 0) {
+    const top = hits[0]
+    const isLegend = top.para.kind === 'legend' || top.chapter.layer === 'legend'
+    const lead = isLegend
+      ? '这是流传的传说，并非史实——\n'
+      : `${top.eraLabel}·${top.chapter.title}——\n`
+
+    const parts = [`${GUIDE_PREFIX}${lead}${top.para.text}`]
+    if (top.para.note) parts.push(top.para.note)
+
+    const sources = [...(top.para.sources ?? []), ...(top.chapter.sources ?? [])]
+    if (sources.length > 0) {
+      parts.push(`据 ${sources.map(formatSource).join('、')}`)
+    }
+    // 次优命中作为延伸阅读线索
+    const alt = hits.slice(1).find((h) => h.chapter.id !== top.chapter.id)
+    if (alt) parts.push(`还可以问我：${alt.chapter.title}`)
+
+    const actions: ChatAction[] = []
+    const poiId = top.para.poiRefs?.[0]
+    if (poiId) {
+      const poi = loc.pois?.find((p) => p.id === poiId)
+      if (poi) actions.push({ kind: 'focusPoi', label: `在地图上看${poi.name}`, poiId, era: top.eraKey })
+    }
+    if (top.eraKey !== currentEra) {
+      actions.push({ kind: 'gotoEra', label: `切到${top.eraLabel}`, era: top.eraKey })
+    }
+
+    return { text: parts.join('\n\n'), actions }
+  }
+
+  // ② 意图关键词（地名由来 / 人物 / 事件 / 对比 / 生活）
   for (const rule of AI_QA_RULES) {
     if (rule.keywords.some((k) => q.includes(k.toLowerCase()))) {
-      return `${GUIDE_PREFIX}${rule.answer(loc)}`
+      return { text: `${GUIDE_PREFIX}${rule.answer(loc)}` }
     }
   }
 
-  // 2) 若提到具体年代/朝代，按年份在当前地点的时间轴上就近取时代；
-  //    所问年份不落在该时代区间时明确说明，不冒充。
-  const asked = detectEraYear(q)
+  // ③ 年代快照：按问题里的年份/朝代就近取时代记录
+  const askedYear = extractYear(query)
+  const asked = detectEraYear(q) ?? (askedYear !== undefined ? { year: askedYear, label: `${askedYear} 年` } : undefined)
   if (asked) {
     const key = getClosestEraByYear(loc, asked.year)
     const def = key ? getEraDef(loc, key) : undefined
     const rec = key ? getRecord(loc, key) : undefined
-    if (rec && def) {
+    if (rec && def && key) {
       const inRange = asked.year >= def.yearRange[0] && asked.year <= def.yearRange[1]
       const note = inRange
         ? ''
         : `（我暂时没有「${loc.name}」${asked.label}的独立记载，为你呈现最接近的${def.label}）\n`
-      return `${GUIDE_PREFIX}${note}${rec.title}——\n${rec.summary}\n\n要点：${rec.highlights.join('、')}。`
+      return {
+        text: `${GUIDE_PREFIX}${note}${rec.title}——\n${rec.summary}\n\n要点：${rec.highlights.join('、')}。`,
+        actions: key !== currentEra ? [{ kind: 'gotoEra', label: `切到${def.label}`, era: key }] : undefined,
+      }
     }
   }
 
-  // 3) 优雅兜底
-  return (
-    `${GUIDE_PREFIX}关于「${loc.name}」，我手头的记载是这样的：${loc.tagline}。\n\n` +
-    `你可以问我：这里以前叫什么？这里 500 年前是什么样？这里有哪些名人？发生过什么大事？`
-  )
+  // ④ 诚实兜底：承认没有记载，并给出当前时代可问的章节
+  const topics = currentEra ? suggestChapters(loc, currentEra) : []
+  const hint =
+    topics.length > 0
+      ? `这个问题我在史料里没有找到对应的记载。当前时代你可以问我：\n${topics.map((t) => `· ${t}`).join('\n')}`
+      : `这个问题我在史料里没有找到对应的记载。关于「${loc.name}」，我手头是：${loc.tagline}。\n\n你可以问我：这里以前叫什么？这里有哪些名人？发生过什么大事？`
+  return { text: `${GUIDE_PREFIX}${hint}` }
 }
 
 export interface UseAiGuide {
@@ -66,7 +116,7 @@ export interface UseAiGuide {
  * 期间 isTyping=true 以驱动打字指示器。对话历史存于全局 context。
  */
 export function useAiGuide(): UseAiGuide {
-  const { activeLocation, pushChat } = useApp()
+  const { activeLocation, activeEra, pushChat } = useApp()
   const [isTyping, setIsTyping] = useState(false)
   const timerRef = useRef<number | undefined>(undefined)
 
@@ -86,16 +136,16 @@ export function useAiGuide(): UseAiGuide {
       pushChat({ id: `u-${id}`, role: 'user', text: trimmed })
       setIsTyping(true)
 
-      const answer = composeAnswer(trimmed, activeLocation)
-      const delay = 350 + Math.min(answer.length * 6, 600)
+      const answer = composeAnswer(trimmed, activeLocation, activeEra)
+      const delay = 350 + Math.min(answer.text.length * 5, 600)
 
       timerRef.current = window.setTimeout(() => {
-        pushChat({ id: `g-${id}`, role: 'guide', text: answer })
+        pushChat({ id: `g-${id}`, role: 'guide', text: answer.text, actions: answer.actions })
         setIsTyping(false)
         timerRef.current = undefined
       }, delay)
     },
-    [activeLocation, pushChat, isTyping],
+    [activeLocation, activeEra, pushChat, isTyping],
   )
 
   return { isTyping, send }

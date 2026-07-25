@@ -9,7 +9,7 @@ import StoryScroll from '../../components/story/StoryScroll'
 import PoiPopover from '../../components/story/PoiPopover'
 
 export default function TimeSpaceMapPage() {
-  const { activeLocation, activeEra, setActiveEra } = useApp()
+  const { activeLocation, activeEra, setActiveEra, pendingFocusPoiId, clearPendingFocus } = useApp()
   const record = getRecord(activeLocation, activeEra)
   const eraDefs = useMemo(() => getAvailableEraDefs(activeLocation), [activeLocation])
   const poiMap = useMemo(() => getPoiMap(activeLocation), [activeLocation])
@@ -28,6 +28,15 @@ export default function TimeSpaceMapPage() {
     setFocusedPoiIds([])
     setOpenPoiId(null)
   }, [activeLocation.id, activeEra])
+
+  // 消费导游「在地图上看 →」的聚焦请求
+  useEffect(() => {
+    if (!pendingFocusPoiId) return
+    pausedUntil.current = Date.now() + 4000
+    setFocusedPoiIds([pendingFocusPoiId])
+    setOpenPoiId(pendingFocusPoiId)
+    clearPendingFocus()
+  }, [pendingFocusPoiId, clearPendingFocus])
 
   const handleFocusFromScroll = useCallback((ids: string[]) => {
     if (Date.now() < pausedUntil.current) return

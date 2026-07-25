@@ -1,11 +1,12 @@
 import { useEffect, useRef } from 'react'
-import type { ChatMessage } from '../../types'
+import type { ChatAction, ChatMessage } from '../../types'
 import ChatBubble from './ChatBubble'
 
 interface Props {
   messages: ChatMessage[]
   isTyping?: boolean
   emptyHint?: React.ReactNode
+  onAction?: (action: ChatAction) => void
 }
 
 function TypingIndicator() {
@@ -24,7 +25,7 @@ function TypingIndicator() {
   )
 }
 
-export default function ChatWindow({ messages, isTyping, emptyHint }: Props) {
+export default function ChatWindow({ messages, isTyping, emptyHint, onAction }: Props) {
   const endRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -35,7 +36,7 @@ export default function ChatWindow({ messages, isTyping, emptyHint }: Props) {
     <div className="flex flex-col gap-3 p-4">
       {messages.length === 0 && !isTyping && emptyHint}
       {messages.map((m) => (
-        <ChatBubble key={m.id} message={m} />
+        <ChatBubble key={m.id} message={m} onAction={onAction} />
       ))}
       {isTyping && <TypingIndicator />}
       <div ref={endRef} />

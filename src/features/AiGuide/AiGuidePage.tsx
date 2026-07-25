@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom'
+import type { ChatAction } from '../../types'
 import { useApp } from '../../context/AppContext'
 import { useAiGuide } from '../../hooks/useAiGuide'
 import ChatWindow from '../../components/chat/ChatWindow'
@@ -40,8 +42,20 @@ function SuggestionChips({ onSend, disabled, variant }: ChipsProps) {
 }
 
 export default function AiGuidePage() {
-  const { activeLocation, chat } = useApp()
+  const { activeLocation, chat, setActiveEra, requestFocusPoi } = useApp()
   const { isTyping, send } = useAiGuide()
+  const navigate = useNavigate()
+
+  // 回答里的操作 chip：切时代 / 在地图上看某地标
+  const handleAction = (a: ChatAction) => {
+    if (a.kind === 'gotoEra') {
+      setActiveEra(a.era)
+      navigate('/map')
+    } else {
+      requestFocusPoi(a.poiId, a.era)
+      navigate('/map')
+    }
+  }
 
   const emptyHint = (
     <div className="mt-6 space-y-4 text-center">
@@ -66,7 +80,7 @@ export default function AiGuidePage() {
 
       <div className="no-scrollbar flex-1 overflow-y-auto">
         <div className="mx-auto w-full max-w-3xl">
-          <ChatWindow messages={chat} isTyping={isTyping} emptyHint={emptyHint} />
+          <ChatWindow messages={chat} isTyping={isTyping} emptyHint={emptyHint} onAction={handleAction} />
         </div>
       </div>
 

@@ -23,6 +23,11 @@ interface AppState {
   /** AI 时空导游对话历史（跨标签页保留） */
   chat: ChatMessage[]
   pushChat: (msg: ChatMessage) => void
+
+  /** 待地图消费的聚焦请求（导游回答里的「在地图上看」） */
+  pendingFocusPoiId: string | null
+  requestFocusPoi: (poiId: string, era?: EraKey) => void
+  clearPendingFocus: () => void
 }
 
 const AppContext = createContext<AppState | null>(null)
@@ -34,6 +39,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [activeLocationId, setActiveLocationIdRaw] = useState(DEFAULT_LOCATION_ID)
   const [activeEra, setActiveEra] = useState<EraKey>(DEFAULT_ERA)
   const [chat, setChat] = useState<ChatMessage[]>([])
+  const [pendingFocusPoiId, setPendingFocusPoiId] = useState<string | null>(null)
 
   const activeLocation = useMemo(
     () => getLocationById(activeLocationId) ?? LOCATIONS[0],
@@ -53,6 +59,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setChat((prev) => [...prev, msg])
   }, [])
 
+  // 导游回答的操作 chip：先切时代，再把聚焦请求交给地图页
+  const requestFocusPoi = useCallback((poiId: string, era?: EraKey) => {
+    if (era) setActiveEra(era)
+    setPendingFocusPoiId(poiId)
+  }, [])
+
+  const clearPendingFocus = useCallback(() => setPendingFocusPoiId(null), [])
+
   const value = useMemo<AppState>(
     () => ({
       locations: LOCATIONS,
@@ -64,6 +78,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       availableEras,
       chat,
       pushChat,
+      pendingFocusPoiId,
+      requestFocusPoi,
+      clearPendingFocus,
     }),
     [
       activeLocation,
@@ -73,6 +90,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       availableEras,
       chat,
       pushChat,
+      pendingFocusPoiId,
+      requestFocusPoi,
+      clearPendingFocus,
     ],
   )
 
