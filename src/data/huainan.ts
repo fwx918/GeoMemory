@@ -1,5 +1,21 @@
 import type { GeoFeature, Location } from '../types'
 import { HUAINAN_BBOX, HUAINAN_BOUNDARY } from './huainanBoundary'
+import { HUAINAN_POIS } from './huainan/pois'
+import {
+  CHU_CHAPTERS,
+  HAN_CHAPTERS,
+  JIN_CHAPTERS,
+  QING_CHAPTERS,
+  REPUBLIC_CHAPTERS,
+  NOW_CHAPTERS,
+} from './huainan/chapters'
+
+// ============================================================================
+// 淮南（朝代级时间轴）：
+// - 真实行政边界（DataV）+ 淮河 / 瓦埠湖 / 高塘湖 / 焦岗湖 / 八公山
+// - 6 档时间轴：战国楚 → 西汉 → 东晋 → 明清 → 近代 → 当代
+// - 地标统一走共享 POI 表（src/data/huainan/pois.ts），章节见 chapters.ts
+// ============================================================================
 
 // 真实地理基础要素（各时代共有的自然水系与山体），坐标为真实经纬度 [lng, lat]。
 // 位置依据真实地理近似绘制：淮河自西向东穿境而过，瓦埠湖在南、
@@ -76,7 +92,8 @@ const BAGONG_MOUNTAIN: GeoFeature = {
   ],
 }
 
-// 寿春（寿县）古城墙——宋代砖城，方形七门，作为古代叠加要素
+// 寿春（寿县）古城墙——现存为南宋嘉定十二年重筑的砖城，四门带瓮城；
+// 战国楚都寿春城址在今寿县城东南，规模远大于此，本要素仅作位置示意。
 const SHOUCHUN_WALL: GeoFeature = {
   id: 'shouchun-wall',
   kind: 'wall',
@@ -123,90 +140,98 @@ export const HUAINAN: Location = {
   coord: { lat: 32.6476, lng: 117.0183 },
   cover: '⛰️',
   tagline: '淮水之南，楚都遗韵与煤电之都的千年叠影',
-  eras: ['2026', '1950', '1900', '1800', 'ancient'],
+  timeline: [
+    { key: 'now', label: '当代', dynasty: '能源之都·科教转型', yearRange: [2000, 2026], year: 2015, weight: 2 },
+    { key: 'republic', label: '近代', dynasty: '因煤而兴', yearRange: [1900, 1999], year: 1950, weight: 2 },
+    { key: 'qing', label: '明清', dynasty: '寿州漕运', yearRange: [1368, 1899], year: 1750, weight: 1 },
+    { key: 'jin', label: '东晋', dynasty: '淝水之战', yearRange: [317, 420], year: 383, weight: 3 },
+    { key: 'han', label: '西汉', dynasty: '淮南国', yearRange: [-206, 220], year: -160, weight: 3 },
+    { key: 'chu', label: '战国楚', dynasty: '楚都寿春', yearRange: [-241, -223], year: -241, weight: 3 },
+  ],
+  eras: ['now', 'republic', 'qing', 'jin', 'han', 'chu'],
   geo: {
     bbox: HUAINAN_BBOX,
     boundary: HUAINAN_BOUNDARY,
     base: [HUAI_RIVER, WABU_LAKE, GAOTANG_LAKE, JIAOGANG_LAKE, BAGONG_MOUNTAIN],
   },
+  pois: HUAINAN_POIS,
+  featuredCompare: ['jin', 'now'],
   records: {
-    '2026': {
-      era: '2026',
-      title: '淮南 · 当代',
+    now: {
+      era: 'now',
+      title: '当代 · 能源之都与科教转型',
       summary:
-        '今天的淮南是「中国能源之都」，平圩电厂等大型坑口电厂沿淮河而立，将煤变成送往华东的电。高铁淮南东站接入商合杭通道，安徽理工大学等高校汇聚，城市正从单一煤城转向能源与科教并重。',
-      highlights: ['中国能源之都', '高铁淮南东站', '平圩电厂群', '由煤城向科教转型'],
+        '今天的淮南是「中国能源之都」：平圩等大型坑口电厂沿淮河而立，煤从矿井走一条皮带就进锅炉，变成送往长三角的电。高铁淮南东站把这里拉进合肥半小时圈，安徽理工大学等高校扎根煤城；采煤沉陷区架起水面光伏，2015 年寿县划归淮南，楚都与煤城合到了一个市名之下。',
+      highlights: ['中国能源之都·坑口电厂群', '高铁淮南东站', '采煤沉陷区水面光伏', '2015 寿县划归淮南'],
       imageHint: '⚡',
+      chapters: NOW_CHAPTERS,
       geoOverlay: {
         features: [HIGH_SPEED_RAIL],
-        markers: [
-          { id: 'tja', name: '田家庵城区', lng: 117.0, lat: 32.64, kind: 'building' },
-          { id: 'pingwei', name: '平圩电厂', lng: 116.98, lat: 32.71, kind: 'building' },
-          { id: 'hsr-station', name: '淮南东站', lng: 117.12, lat: 32.58, kind: 'transit' },
-          { id: 'aust', name: '安徽理工大学', lng: 117.13, lat: 32.62, kind: 'building' },
-        ],
+        poiRefs: ['tianjiaan', 'pingwei', 'huainan-east', 'aust', 'shungeng', 'datong', 'shouchun', 'bagong'],
       },
     },
-    '1950': {
-      era: '1950',
-      title: '淮南 · 工矿崛起',
+    republic: {
+      era: 'republic',
+      title: '近代 · 因煤而兴',
       summary:
-        '二十世纪上半叶，舜耕山下的大通、九龙岗煤矿相继开发，1934 年淮南铁路通车，把煤炭运往裕溪口装船。新中国成立后淮南矿务局壮大，淮南由淮河边的集镇一跃成为华东重要的煤炭能源基地，并于 1952 年设市。',
-      highlights: ['大通·九龙岗煤矿', '1934 淮南铁路通车', '淮南矿务局', '1952 年设市'],
+        '1930 年国民政府在舜耕山北麓的九龙岗开凿新式竖井，淮南的煤第一次成规模地出井；1934 年淮南铁路通车，煤经裕溪口装船下长江，田家庵由渡口集镇变成枢纽。抗战期间日军侵占矿区，大通留下「万人坑」。1949 年设矿区，1950 年建市，1952 年升为省辖市——这座城市的建制，是跟着煤层走出来的。',
+      highlights: ['1930 九龙岗新式竖井', '1934 淮南铁路通车', '大通万人坑', '1952 年升为省辖市'],
       imageHint: '⛏️',
+      chapters: REPUBLIC_CHAPTERS,
       geoOverlay: {
         features: [HUAINAN_RAIL],
-        markers: [
-          { id: 'datong', name: '大通煤矿', lng: 117.07, lat: 32.62, kind: 'building' },
-          { id: 'jiulonggang', name: '九龙岗', lng: 117.02, lat: 32.61, kind: 'building' },
-          { id: 'tja-town', name: '田家庵', lng: 117.0, lat: 32.64, kind: 'transit' },
-        ],
+        poiRefs: ['datong', 'jiulonggang', 'tianjiaan', 'shungeng', 'fengtai'],
       },
     },
-    '1900': {
-      era: '1900',
-      title: '淮南 · 清末',
+    qing: {
+      era: 'qing',
+      title: '寿州与凤台 · 明清',
       summary:
-        '清末这一带分属寿州与凤台县。淮河南岸的田家庵还只是一个渡口集镇，舟楫往来、商货集散。八公山下的煤苗虽已为人所知，但大规模开采尚未开始，乡野之间一派农耕与漕运景象。',
-      highlights: ['分属寿州与凤台', '田家庵尚为渡口集镇', '淮河漕运', '煤矿未大规模开采'],
+        '明清这一带属凤阳府寿州，乾隆四十二年（1777）析淮北之地置凤台县。南宋重筑的四门砖城既挡兵也挡水，淮河一涨城外汪洋而城内安然。西六十里的正阳关「七十二水通正阳」，是淮河中游最大的水陆码头；瓦埠湖、焦岗湖沿岸圩田连片，而淮河南岸的田家庵还只是个渡口小集。',
+      highlights: ['寿州四门砖城·月坝防洪', '1777 析置凤台县', '正阳关漕运码头', '瓦埠湖圩田与淮河水患'],
       imageHint: '⛵',
+      chapters: QING_CHAPTERS,
       geoOverlay: {
-        markers: [
-          { id: 'shouzhou', name: '寿州古城', lng: 116.785, lat: 32.585, kind: 'landmark' },
-          { id: 'fengtai', name: '凤台县城', lng: 116.72, lat: 32.71, kind: 'village' },
-          { id: 'tja-ferry', name: '田家庵渡口', lng: 117.0, lat: 32.64, kind: 'transit' },
-        ],
+        poiRefs: ['shouchun', 'fengtai', 'zhengyangguan', 'tianjiaan', 'wabuhu', 'anfengtang'],
       },
     },
-    '1800': {
-      era: '1800',
-      title: '淮南 · 清嘉庆',
+    jin: {
+      era: 'jin',
+      title: '寿阳 · 淝水之战',
       summary:
-        '嘉庆年间，寿州古城仍是淮河中游的军事与漕运重镇，宋代砖砌的七门城墙抵御着淮河水患。瓦埠湖、高塘湖滨是连片的圩田，凤台、寿州的米粮经淮河北上南下，文风与农耕并盛。',
-      highlights: ['寿州古城为漕运重镇', '宋代七门砖城', '瓦埠湖圩田', '淮河米粮集散'],
-      imageHint: '🏯',
+        '东晋避郑太后讳，寿春改称寿阳，成为南北对峙时代最要紧的一把锁钥。太元八年（383）前秦苻坚倾国南下，攻陷寿阳后登城东望，见八公山草木摇动皆疑晋兵；谢石、谢玄率北府兵八万夹淝水而阵，请秦军稍退以决战，秦阵一动即溃。「草木皆兵」「风声鹤唳」自此写进汉语，南北朝格局就此奠定。',
+      highlights: ['383 苻坚南下·陷寿阳', '刘牢之夜袭洛涧', '草木皆兵·风声鹤唳', '谢安折屐齿'],
+      imageHint: '⚔️',
+      chapters: JIN_CHAPTERS,
       geoOverlay: {
         features: [SHOUCHUN_WALL],
-        markers: [
-          { id: 'shouzhou-1800', name: '寿州城', lng: 116.785, lat: 32.585, kind: 'landmark' },
-          { id: 'fengtai-1800', name: '凤台', lng: 116.72, lat: 32.71, kind: 'village' },
-        ],
+        poiRefs: ['shouchun', 'bagong', 'feishui', 'wabuhu', 'fengtai'],
       },
     },
-    ancient: {
-      era: 'ancient',
-      title: '淮南 · 楚汉',
+    han: {
+      era: 'han',
+      title: '淮南国 · 刘安与《淮南子》',
       summary:
-        '公元前 241 年楚国迁都寿春，这里一度是楚国最后的国都。西汉封淮南国，淮南王刘安在此招揽方士编成《淮南子》，相传炼丹时于八公山偶得豆腐，遂为豆腐发源地。公元 383 年淝水之战，东晋以少胜多大败前秦，留下「风声鹤唳」「草木皆兵」的典故。',
-      highlights: ['前 241 楚迁都寿春', '淮南王刘安与《淮南子》', '八公山·豆腐发源地', '383 淝水之战'],
+        '汉高祖封英布为淮南王，「淮南」始为国名；刘长时王都东移寿春，前 164 年刘安受封淮南王。刘安好书鼓琴，招致宾客方术之士数千人编成《淮南子》，二十四节气最早的完整名目、女娲补天与后羿射日的说法都赖此书保存。相传他在八公山炼丹得豆腐，又有「一人得道，鸡犬升天」的传说；前 122 年谋反事发自杀，国除为九江郡。',
+      highlights: ['前 202 英布封淮南王', '前 164 刘安都寿春', '《淮南子》与二十四节气', '八公山炼丹·豆腐传说'],
       imageHint: '🏛️',
+      chapters: HAN_CHAPTERS,
       geoOverlay: {
         features: [SHOUCHUN_WALL],
-        markers: [
-          { id: 'shouchun', name: '寿春(楚都·淮南国)', lng: 116.785, lat: 32.585, kind: 'landmark' },
-          { id: 'bagong', name: '八公山', lng: 116.79, lat: 32.66, kind: 'temple' },
-          { id: 'feishui', name: '淝水古战场', lng: 116.83, lat: 32.61, kind: 'landmark' },
-        ],
+        poiRefs: ['shouchun', 'bagong', 'wabuhu'],
+      },
+    },
+    chu: {
+      era: 'chu',
+      title: '寿春 · 楚国最后的都城',
+      summary:
+        '楚考烈王二十二年（前 241），楚人畏秦东徙，《史记》记「楚东徙都寿春，命曰郢」。此后十八年，寿春是楚国最后一座国都；前 223 年王翦破楚、虏王负刍，八百年的楚国在这座城下终结。城南百里的芍陂（安丰塘）相传为孙叔敖所筑，比楚都还早三百年，至今仍在灌田。',
+      highlights: ['前 241 楚东徙都寿春', '前 223 秦灭楚', '寿春城遗址与铸客大鼎', '芍陂·孙叔敖'],
+      imageHint: '🏺',
+      chapters: CHU_CHAPTERS,
+      geoOverlay: {
+        features: [SHOUCHUN_WALL],
+        poiRefs: ['shouchun', 'fengtai', 'anfengtang'],
       },
     },
   },
@@ -226,10 +251,10 @@ export const HUAINAN: Location = {
       '两千多年前，你脚下的寿春是楚国的国都、淮南国的中心，八公山上方士炼丹、淝水之畔刀兵相见；今天同一片淮水之南，已是机组轰鸣的煤电基地与高铁穿行的现代城市。唯有那条淮河，依旧自西向东，把楚都的月色与电厂的灯火一并映在水面。',
   },
   nearby: [
-    { id: 'hn-bagong', name: '八公山', distanceM: 6000, era: 'ancient', blurb: '淮南王刘安炼丹之地，相传豆腐由此而生，亦是淝水之战「草木皆兵」的典故所在。', emoji: '⛰️' },
-    { id: 'hn-shouxian', name: '寿县古城', distanceM: 22000, era: '1800', blurb: '保存完好的宋代砖城，方形七门，曾为楚都与淮南国都寿春。', emoji: '🏯' },
-    { id: 'hn-feishui', name: '淝水古战场', distanceM: 9000, era: 'ancient', blurb: '公元 383 年东晋以八万破前秦八十万，奠定南北朝格局。', emoji: '⚔️' },
-    { id: 'hn-datong', name: '大通煤矿遗址', distanceM: 5000, era: '1950', blurb: '近代淮南煤炭工业的起点，记录着城市因煤而兴的岁月。', emoji: '⛏️' },
+    { id: 'hn-bagong', name: '八公山', distanceM: 6000, era: 'han', blurb: '淮南王刘安炼丹之地，相传豆腐由此而生，亦是淝水之战「草木皆兵」的典故所在。', emoji: '⛰️' },
+    { id: 'hn-shouxian', name: '寿县古城', distanceM: 22000, era: 'qing', blurb: '南宋嘉定年间重筑的砖城，四门带瓮城；城下叠着楚都寿春与淮南国的旧址。', emoji: '🏯' },
+    { id: 'hn-feishui', name: '淝水古战场', distanceM: 9000, era: 'jin', blurb: '公元 383 年东晋以八万北府兵大破倾国南下的前秦，奠定南北朝格局。', emoji: '⚔️' },
+    { id: 'hn-datong', name: '大通煤矿遗址', distanceM: 5000, era: 'republic', blurb: '近代淮南煤炭工业的起点，万人坑与窑神庙记录着城市因煤而兴的岁月。', emoji: '⛏️' },
   ],
 }
 
