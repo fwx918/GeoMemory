@@ -1,9 +1,7 @@
 import type { EraDef, EraKey, EraRecord, GeoMarker, Location, Poi } from '../types'
 import { LOCATIONS } from './locations'
-import { LEGACY_ERA_BY_KEY, LEGACY_ERA_DEFS } from './eras'
 
 export { LOCATIONS } from './locations'
-export { LEGACY_ERA_DEFS, LEGACY_ERA_BY_KEY } from './eras'
 export { AI_QA_RULES, ERA_PHRASE_MAP } from './aiResponses'
 
 export function getAllLocations(): Location[] {
@@ -45,10 +43,9 @@ export function searchLocationByAddress(text: string): Location | undefined {
 
 // ---------------------------------------------------------------- 时间轴
 
-/** 地点时间轴（从今到古）：自带 timeline 优先，否则由旧版 6 档 × eras 派生 */
+/** 地点时间轴（从今到古） */
 export function getTimeline(loc: Location): EraDef[] {
-  if (loc.timeline) return loc.timeline
-  return LEGACY_ERA_DEFS.filter((e) => loc.eras.includes(e.key))
+  return loc.timeline
 }
 
 export function getEraDef(loc: Location, key: EraKey): EraDef | undefined {
@@ -57,7 +54,7 @@ export function getEraDef(loc: Location, key: EraKey): EraDef | undefined {
 
 /** 时代 key → 展示用标签（时间轴外的地点/旧 key 也能优雅回退） */
 export function resolveEraLabel(loc: Location, key: EraKey): { label: string; dynasty?: string } {
-  const def = getEraDef(loc, key) ?? LEGACY_ERA_BY_KEY[key]
+  const def = getEraDef(loc, key)
   return def ? { label: def.label, dynasty: def.dynasty } : { label: key }
 }
 
@@ -92,7 +89,7 @@ export function getClosestEraByYear(loc: Location, year: number): EraKey | undef
  */
 export function getClosestEra(loc: Location, era: EraKey): EraKey | undefined {
   if (loc.records[era]) return era
-  const year = (getEraDef(loc, era) ?? LEGACY_ERA_BY_KEY[era])?.year
+  const year = getEraDef(loc, era)?.year
   if (year === undefined) return getAvailableEras(loc)[0]
   return getClosestEraByYear(loc, year)
 }

@@ -1,6 +1,7 @@
 import type { GeoFeature, Location } from '../types'
 import { SHANGHAI_BBOX, SHANGHAI_BOUNDARY } from './shanghaiBoundary'
 import { SHANGHAI_POIS } from './shanghai/pois'
+import { SHANGHAI_DISTRICTS } from './generated/shanghaiDistricts'
 import {
   PRE1843_CHAPTERS,
   CONCESSION_CHAPTERS,
@@ -72,7 +73,6 @@ export const SHANGHAI: Location = {
     { key: 'concession', label: '开埠租界', dynasty: '大马路', yearRange: [1843, 1911], year: 1880, weight: 3 },
     { key: 'pre-1843', label: '开埠前', dynasty: '县城北郊', yearRange: [1074, 1842], year: 1800, weight: 1 },
   ],
-  eras: ['now', 'prc', 'republic', 'concession', 'pre-1843'],
   geo: {
     bbox: SHANGHAI_BBOX,
     boundary: SHANGHAI_BOUNDARY,
@@ -80,6 +80,8 @@ export const SHANGHAI: Location = {
     // 放大档：外滩—南京东路—老城厢一线（POI 集中区）
     zoomBbox: [121.462, 31.215, 121.518, 31.252],
     zoomLabel: '外滩·南京路',
+    districts: SHANGHAI_DISTRICTS,
+    overview: { boundary: SHANGHAI_BOUNDARY, bbox: SHANGHAI_BBOX },
   },
   pois: SHANGHAI_POIS,
   featuredCompare: ['concession', 'now'],

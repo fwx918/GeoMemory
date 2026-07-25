@@ -249,6 +249,18 @@ export default function GeoMap({
         <rect x="0" y="0" width="100" height="100" className="fill-[#262017]" />
       )}
 
+      {/* 区县细线参考层（背景） */}
+      {geo.districts?.map((d) => (
+        <path
+          key={d.code}
+          d={toPath(d.ring, proj, true)}
+          className="fill-none stroke-parchment-200/15"
+          strokeWidth="0.35"
+          strokeDasharray="0.6 0.6"
+          strokeLinejoin="round"
+        />
+      ))}
+
       {/* 基础地理要素（河流、湖泊、山体） */}
       {geo.base?.map((f) => (
         <FeaturePath key={f.id} f={f} proj={proj} />
@@ -281,6 +293,36 @@ export default function GeoMap({
           ◌ 虚线要素为文献复原示意
         </text>
       )}
+
+      {/* 概览小地图：主视图只截取一角时，标出当前视野在全域中的位置 */}
+      {geo.overview && !minimal && (() => {
+        const oProj = createProjector(geo.overview.bbox, 100, 0)
+        const scale = 0.2 // 小地图占主图 20%
+        const ox = 78
+        const oy = 76
+        const [x1, y1] = oProj.project(bbox[0], bbox[3])
+        const [x2, y2] = oProj.project(bbox[2], bbox[1])
+        return (
+          <g transform={`translate(${ox} ${oy}) scale(${scale})`} opacity="0.85">
+            <rect x="-3" y="-3" width="106" height="106" rx="6" className="fill-ink/85 stroke-white/15" strokeWidth="1.5" />
+            <path
+              d={toPath(geo.overview.boundary, oProj, true)}
+              className="fill-[#3a3226] stroke-amber-200/40"
+              strokeWidth="1.2"
+              strokeLinejoin="round"
+            />
+            {/* 当前视野 */}
+            <rect
+              x={Math.min(x1, x2)}
+              y={Math.min(y1, y2)}
+              width={Math.abs(x2 - x1)}
+              height={Math.abs(y2 - y1)}
+              className="fill-seal/25 stroke-seal"
+              strokeWidth="2"
+            />
+          </g>
+        )
+      })()}
 
       {/* 缩放切换（地点提供 zoomBbox 时出现） */}
       {geo.zoomBbox && !minimal && (

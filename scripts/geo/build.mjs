@@ -156,4 +156,63 @@ const fmtRing = (ring) => `[\n${ring.map((p) => `    [${p[0]}, ${p[1]}],`).join(
   )
 }
 
+// ---------------------------------------------------------------- 区县细线层
+// 数据源：Vonng/adcode data/fences/{adcode}.json（民政部区划边界，精度 A）
+const DISTRICTS = {
+  hangzhou: [
+    ['330106', '西湖区'], ['330102', '上城区'], ['330105', '拱墅区'],
+  ],
+  huainan: [
+    ['340403', '田家庵区'], ['340404', '谢家集区'], ['340405', '八公山区'],
+    ['340406', '潘集区'], ['340422', '寿县'],
+  ],
+  shanghai: [
+    ['310101', '黄浦区'], ['310115', '浦东新区'],
+  ],
+}
+
+for (const [city, list] of Object.entries(DISTRICTS)) {
+  const out = []
+  for (const [code, name] of list) {
+    const file = join(RAW, `district_${code}.json`)
+    if (!existsSync(file)) {
+      const url = `https://raw.githubusercontent.com/Vonng/adcode/master/data/fences/${code}.json`
+      console.log('fetching', url)
+      const res = await fetch(url)
+      if (!res.ok) {
+        console.log(`  skip ${code}: HTTP ${res.status}`)
+        continue
+      }
+      writeFileSync(file, await res.text())
+    }
+    const geom = JSON.parse(readFileSync(file, 'utf-8'))
+    // Polygon | MultiPolygon → 取最大外环（区县通常单块）
+    const polys = geom.type === 'Polygon' ? [geom.coordinates] : geom.coordinates
+    let ring = []
+    for (const p of polys) if (p[0].length > ring.length) ring = p[0]
+    const midLat = ring.reduce((s, p) => s + p[1], 0) / ring.length
+    // 细线层只作背景，精简得更狠（~1km 容差）
+    const simp = round(simplify(ring, 1.2e-3, midLat))
+    out.push({ code, name, pts: simp })
+  }
+  if (out.length === 0) continue
+  emit(
+    `${city}Districts.ts`,
+    [
+      '来源：https://raw.githubusercontent.com/Vonng/adcode/master/data/fences/{adcode}.json（民政部区划，精度 A）',
+      `Douglas-Peucker eps 1.2e-3；${out.length} 个区县，共 ${out.reduce((s, d) => s + d.pts.length, 0)} 点`,
+      '仅作底图细线参考层，不参与地标定位',
+    ],
+    [
+      'export interface DistrictRing { code: string; name: string; ring: [number, number][] }',
+      '',
+      `export const ${city.toUpperCase()}_DISTRICTS: DistrictRing[] = [`,
+      ...out.map(
+        (d) => `  { code: '${d.code}', name: '${d.name}', ring: ${fmtRing(d.pts)} },`,
+      ),
+      ']',
+    ],
+  )
+}
+
 console.log('done')

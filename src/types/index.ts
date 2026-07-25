@@ -4,25 +4,8 @@
 // dataset can be extended without touching UI code.
 // ============================================================================
 
-/**
- * 时代 key。地点可自带朝代级时间轴（如杭州 'south-song'），
- * 未迁移的地点沿用全局 LegacyEraKey（'2026' | '1950' | ...）。
- */
+/** 时代 key：各地点自带朝代级时间轴，如杭州 'south-song'、淮南 'chu' */
 export type EraKey = string
-
-/** 旧版全局 6 档年代 key（淮南/上海/新加坡仍在使用） */
-export type LegacyEraKey = '2026' | '2000' | '1950' | '1900' | '1800' | 'ancient'
-
-/** 旧版全局时代（data/eras.ts 的 ERAS 列表项） */
-export interface Era {
-  key: LegacyEraKey
-  /** 时间轴展示文案，如 "1800年" / "更早" */
-  label: string
-  /** 用于排序的数值（ancient 取一个很小的哨兵值） */
-  year: number
-  /** 简短的时代别称，如 "清·嘉庆" */
-  dynasty?: string
-}
 
 /**
  * 朝代级时代定义（地点专属时间轴项）。
@@ -209,6 +192,18 @@ export interface GeoBase {
   zoomBbox?: [number, number, number, number]
   /** 放大档的名称，如 "湖区" */
   zoomLabel?: string
+  /** 区县细线参考层（背景，不参与地标定位） */
+  districts?: { code: string; name: string; ring: LngLat[] }[]
+  /**
+   * 概览小地图：当主视图只截取城市一角时，右下角画出全域轮廓
+   * 并标出当前视野范围。
+   */
+  overview?: {
+    /** 全域边界环（如杭州市界） */
+    boundary: LngLat[]
+    /** 全域 bbox，用于投影 */
+    bbox: [number, number, number, number]
+  }
 }
 
 /** 某时代叠加在真实底图上的要素与地标 */
@@ -230,13 +225,8 @@ export interface Location {
   cover: string
   /** 一句话简介 */
   tagline: string
-  /**
-   * 朝代级专属时间轴（从今到古）。缺省时由全局 ERAS × eras 派生
-   * （见 data/index.ts getTimeline）。
-   */
-  timeline?: EraDef[]
-  /** 拥有记录的时代（决定时间轴可选项），按从今到古排序 */
-  eras: EraKey[]
+  /** 朝代级时间轴（从今到古），决定时间轴刻度与年代匹配 */
+  timeline: EraDef[]
   records: Partial<Record<EraKey, EraRecord>>
   story: PlaceStory
   nearby: NearbySpot[]

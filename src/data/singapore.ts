@@ -57,7 +57,6 @@ export const SINGAPORE: Location = {
     { key: 'colonial', label: '海峡殖民地', dynasty: '码头与苦力', yearRange: [1826, 1941], year: 1900, weight: 3 },
     { key: 'kampong', label: '开埠前后', dynasty: '渔村·1819 莱佛士登陆', yearRange: [1300, 1825], year: 1810, weight: 3 },
   ],
-  eras: ['now', 'nation', 'showa', 'colonial', 'kampong'],
   geo: {
     bbox: SINGAPORE_BBOX,
     boundary: SINGAPORE_BOUNDARY,

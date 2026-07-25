@@ -1,6 +1,7 @@
 import type { GeoFeature, Location } from '../types'
 import { HUAINAN_BBOX, HUAINAN_BOUNDARY } from './huainanBoundary'
 import { HUAINAN_POIS } from './huainan/pois'
+import { HUAINAN_DISTRICTS } from './generated/huainanDistricts'
 import {
   CHU_CHAPTERS,
   HAN_CHAPTERS,
@@ -148,11 +149,11 @@ export const HUAINAN: Location = {
     { key: 'han', label: '西汉', dynasty: '淮南国', yearRange: [-206, 220], year: -160, weight: 3 },
     { key: 'chu', label: '战国楚', dynasty: '楚都寿春', yearRange: [-241, -223], year: -241, weight: 3 },
   ],
-  eras: ['now', 'republic', 'qing', 'jin', 'han', 'chu'],
   geo: {
     bbox: HUAINAN_BBOX,
     boundary: HUAINAN_BOUNDARY,
     base: [HUAI_RIVER, WABU_LAKE, GAOTANG_LAKE, JIAOGANG_LAKE, BAGONG_MOUNTAIN],
+    districts: HUAINAN_DISTRICTS,
   },
   pois: HUAINAN_POIS,
   featuredCompare: ['jin', 'now'],

@@ -19,6 +19,8 @@ import {
 } from './hangzhou/chapters-mid'
 import { WEST_LAKE_RINGS } from './generated/westLake'
 import { QIANTANG_RIVER } from './generated/qiantangRiver'
+import { HANGZHOU_DISTRICTS } from './generated/hangzhouDistricts'
+import { HANGZHOU_CITY_BBOX, HANGZHOU_CITY_BOUNDARY } from './generated/hangzhouCity'
 
 // ============================================================================
 // 杭州（真实化试点）：
@@ -232,13 +234,14 @@ export const HANGZHOU: Location = {
     { key: 'sui', label: '隋', dynasty: '杭州得名', yearRange: [589, 618], year: 600, weight: 1 },
     { key: 'qin-six', label: '秦汉六朝', dynasty: '钱唐县', yearRange: [-222, 588], year: 300, weight: 1 },
   ],
-  eras: ['now', 'prc', 'republic', 'qing', 'yuan-ming', 'south-song', 'north-song', 'wuyue', 'tang', 'sui', 'qin-six'],
   geo: {
     bbox: BBOX,
     base: [WEST_LAKE, QIANTANG, GRAND_CANAL, ...HILLS],
     // 湖区级放大档：西湖全湖 + 三岛 + 两堤 + 吴山北麓
     zoomBbox: [120.105, 30.2, 120.178, 30.272],
     zoomLabel: '湖区',
+    districts: HANGZHOU_DISTRICTS,
+    overview: { boundary: HANGZHOU_CITY_BOUNDARY, bbox: HANGZHOU_CITY_BBOX },
   },
   pois: HANGZHOU_POIS,
   featuredCompare: ['south-song', 'now'],
